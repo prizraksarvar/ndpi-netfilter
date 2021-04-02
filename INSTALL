@@ -19,7 +19,7 @@ That would install the nDPI module for the given Linux kernel.
 
 - Finally, also as root, you should copy the iptables module into the
   corresponding directory. Usually this is "/lib/xtables" or
-  "/usr/lib/xtables".
+  "/usr/lib/xtables" or on ubuntu 20 "/usr/lib/x86_64-linux-gnu/xtables/".
 
         cp ipt/libxt_ndpi.so /lib/xtables
 
