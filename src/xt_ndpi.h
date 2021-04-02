@@ -45,7 +45,7 @@ struct xt_ndpi_mtinfo {
 "FILETOPIA","UBNTAC2","KONTIKI","OPENFT","FASTTRACK","GNUTELLA","EDONKEY","BITTORRENT",\
 "EPP","AVI","FLASH","OGG","MPEG","QUICKTIME","REALMEDIA","WINDOWSMEDIA","MMS","XBOX","QQ","MOVE","RTSP","MAIL_IMAPS","ICECAST",\
 "PPLIVE","PPSTREAM","ZATTOO","SHOUTCAST","SOPCAST","TVANTS","TVUPLAYER","HTTP_DOWNLOAD","QQLIVE","THUNDER","SOULSEEK",\
-"SSL_NO_CERT","IRC","AYIYA","UNENCRYPED_JABBER","MSN","OSCAR","YAHOO","BATTLEFIELD","QUAKE","VRRP","STEAM","HALFLIFE2",\
+"SSL_NO_CERT","IRC","AYIYA","UNENCRYPED_JABBER","MSN","OSCAR","YAHOO","QUAKE","VRRP","STEAM","HALFLIFE2",\
 "WORLDOFWARCRAFT","TELNET","STUN","IPSEC","GRE","ICMP","IGMP","EGP","SCTP","OSPF","IP_IN_IP","RTP","RDP","VNC","PCANYWHERE",\
 "SSL","SSH","USENET","MGCP","IAX","TFTP","AFP","STEALTHNET","AIMINI","SIP","TRUPHONE","ICMPV6","DHCPV6","ARMAGETRON",\
 "CROSSFIRE","DOFUS","FIESTA","FLORENSIA","GUILDWARS","HTTP_APPLICATION_ACTIVESYNC","KERBEROS","LDAP","MAPLESTORY","MSSQL_TDS",\
@@ -67,7 +67,7 @@ struct xt_ndpi_mtinfo {
 "filetopia","ubntac2","kontiki","openft","fasttrack","gnutella","edonkey","bittorrent",\
 "epp","avi","flash","ogg","mpeg","quicktime","realmedia","windowsmedia","mms","xbox","qq","move","rtsp","imaps","icecast",\
 "pplive","ppstream","zattoo","shoutcast","sopcast","tvants","tvuplayer","http_download","qqlive","thunder","soulseek",\
-"ssl_no_cert","irc","ayiya","unencryped_jabber","msn","oscar","yahoo","battlefield","quake","vrrp","steam","halflife2",\
+"ssl_no_cert","irc","ayiya","unencryped_jabber","msn","oscar","yahoo","quake","vrrp","steam","halflife2",\
 "worldofwarcraft","telnet","stun","ipsec","gre","icmp","igmp","egp","sctp","ospf","ipip","rtp","rdp","vnc","pcanywhere",\
 "ssl","ssh","usenet","mgcp","iax","tftp","afp","stealthnet","aimini","sip","truphone","icmpv6","dhcpv6","armagetron",\
 "crossfire","dofus","fiesta","florensia","guildwars","http_application_activesync","kerberos","ldap","maplestory","mssql",\
