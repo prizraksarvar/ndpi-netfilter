@@ -748,7 +748,6 @@ ndpi_mt_reg __read_mostly = {
 	.checkentry = ndpi_mt_check,
 	.destroy = ndpi_mt_destroy,
 	.matchsize = sizeof(struct xt_ndpi_mtinfo),
-	.usersize = sizeof(struct xt_ndpi_mtinfo),
 	.me = THIS_MODULE,
 };
 
