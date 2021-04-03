@@ -638,11 +638,7 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
 			kfree_skb(linearized_skb);
 
 		return false;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,0,0)
-	} else if (ct){
-#else
-	} else if (ct){
-#endif
+	} else if (!ct){
 		pr_info ("xt_ndpi: ignoring untracked sk_buff.\n");
 		return false;
 	}
