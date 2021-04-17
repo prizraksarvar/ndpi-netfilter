@@ -484,7 +484,7 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 			spin_unlock_bh (&flow_lock);
 			return proto;
 	        }
-	        else if (!flow->detected_protocol.protocol && (t1 - flow->ndpi_timeout > 30)) {
+	        else if (!flow->detected_protocol.app_protocol && (t1 - flow->ndpi_timeout > 30)) {
 			if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 expired\n", ipdst);
 			spin_unlock_bh (&flow_lock);
 			return NDPI_PROTOCOL_UNKNOWN;
@@ -505,7 +505,7 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
         curflow = kmem_cache_zalloc (osdpi_flow_cache, GFP_ATOMIC);
         curflow->ndpi_flow = (struct ndpi_flow_struct *)
                  ((char*)&curflow->ndpi_flow+sizeof(curflow->ndpi_flow));
-        curflow->detected_protocol.protocol = NDPI_PROTOCOL_UNKNOWN;
+        curflow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
         curflow->ndpi_flow = flow->ndpi_flow;
         spin_unlock_bh (&flow_lock);
 
@@ -547,13 +547,13 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 	/* set detected protocol */
 	spin_lock_bh (&flow_lock);
 	if (flow != NULL) {
-		proto = curflow->detected_protocol.protocol;
+		proto = curflow->detected_protocol.app_protocol;
 		flow->detected_protocol = curflow->detected_protocol;
 
 	        if (proto > NDPI_LAST_IMPLEMENTED_PROTOCOL)
 	                proto = NDPI_PROTOCOL_UNKNOWN;
 		else {
-		        if (flow->detected_protocol.protocol != NDPI_PROTOCOL_UNKNOWN) {
+		        if (flow->detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
 				/* update timeouts */
 				if (debug_dpi && proto <= NDPI_LAST_NFPROTO)
 					pr_info ("xt_ndpi: protocol detected %s ( dst %pI4 )\n", prot_long_str[proto], ipdst);
@@ -680,8 +680,6 @@ ndpi_mt_check(const struct xt_mtchk_param *par)
 
 	return 0;
 }
-#endif
-
 
 
 static void 
@@ -691,7 +689,7 @@ ndpi_mt_destroy (const struct xt_mtdtor_param *par)
 
         ndpi_disable_protocols (info);
 
-#endif
+}
 
 
 
