@@ -636,13 +636,13 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	if (ct == NULL){
 		if(linearized_skb != NULL)
 			kfree_skb(linearized_skb);
-
+        pr_info("xt_ndpi: nf_ct_get return null\n");
 		return false;
 	} else if (!ct){
 		pr_info ("xt_ndpi: ignoring untracked sk_buff.\n");
 		return false;
 	}
-
+    pr_info("xt_ndpi: nf_ct_get return conntrack, will proccess packet\n");
 
 	/* process the packet */
         ip = ip_hdr(skb_use);
