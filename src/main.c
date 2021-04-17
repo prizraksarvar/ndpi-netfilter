@@ -460,48 +460,50 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 		}
 	}
 
-        ktime_get_real_ts64(&tv);
-        t1 = (uint64_t) tv.tv_sec;
+    ktime_get_real_ts64(&tv);
+    t1 = (uint64_t) tv.tv_sec;
 
-        if (flow == NULL) {
-            if (!gc_interval_timeout) {
-                gc_interval_timeout = t1;
-            }
-            else {
-                if (t1 - gc_interval_timeout > 59) {
-                    ndpi_gc_flow();
-                    gc_interval_timeout = t1;
-                }
-            }
-
-            flow = ndpi_alloc_flow(ct);
-            if (flow == NULL) {
-                spin_unlock_bh (&flow_lock);
-                return NDPI_PROTOCOL_UNKNOWN;
-            }
-            else {
-                /* Include flow timeouts */
-                flow->ndpi_timeout = t1;  // 30s for DPI timeout  and 180 for connection
-                    flow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-                flow->detection_completed = 0;
-            }
+    if (flow == NULL) {
+        if (!gc_interval_timeout) {
+            gc_interval_timeout = t1;
         }
         else {
-            /* Update timeouts */
-            exist_flow=1;
-            if (flow->detected_protocol.app_protocol) {
-                proto = flow->detected_protocol.app_protocol;
-                if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
-                    pr_info ("xt_ndpi: flow detected %s ( dst %pI4 )\n", prot_long_str[flow->detected_protocol.app_protocol], ipdst);
-                flow->ndpi_timeout = t1;
-                spin_unlock_bh (&flow_lock);
-                return proto;
-	        }
-	        else if (!flow->detected_protocol.app_protocol && (t1 - flow->ndpi_timeout > 30)) {
-                if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 expired\n", ipdst);
-                spin_unlock_bh (&flow_lock);
-                return NDPI_PROTOCOL_UNKNOWN;
-	        }
+            if (t1 - gc_interval_timeout > 59) {
+                ndpi_gc_flow();
+                gc_interval_timeout = t1;
+            }
+        }
+
+        pr_info("xt_ndpi: flow null, will alloc new\n");
+        flow = ndpi_alloc_flow(ct);
+        if (flow == NULL) {
+            spin_unlock_bh (&flow_lock);
+            return NDPI_PROTOCOL_UNKNOWN;
+        }
+        else {
+            /* Include flow timeouts */
+            flow->ndpi_timeout = t1;  // 30s for DPI timeout  and 180 for connection
+                flow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+            flow->detection_completed = 0;
+        }
+    }
+    else {
+        pr_info("xt_ndpi: flow exist\n");
+        /* Update timeouts */
+        exist_flow=1;
+        if (flow->detected_protocol.app_protocol) {
+            proto = flow->detected_protocol.app_protocol;
+            if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
+                pr_info ("xt_ndpi: flow detected %s ( dst %pI4 )\n", prot_long_str[flow->detected_protocol.app_protocol], ipdst);
+            flow->ndpi_timeout = t1;
+            spin_unlock_bh (&flow_lock);
+            return proto;
+        }
+        else if (!flow->detected_protocol.app_protocol && (t1 - flow->ndpi_timeout > 30)) {
+            if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 expired\n", ipdst);
+            spin_unlock_bh (&flow_lock);
+            return NDPI_PROTOCOL_UNKNOWN;
+        }
 	}
 
 	/* Invalid DPI flow */
@@ -515,20 +517,20 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 	flow->ndpi_timeout = t1;
 
 	/* Set current flow for temporary dump */
-        curflow = kmem_cache_zalloc (osdpi_flow_cache, GFP_ATOMIC);
-        curflow->ndpi_flow = (struct ndpi_flow_struct *)
-                 ((char*)&curflow->ndpi_flow+sizeof(curflow->ndpi_flow));
-        curflow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-        curflow->ndpi_flow = flow->ndpi_flow;
-        spin_unlock_bh (&flow_lock);
+    curflow = kmem_cache_zalloc (osdpi_flow_cache, GFP_ATOMIC);
+    curflow->ndpi_flow = (struct ndpi_flow_struct *)
+             ((char*)&curflow->ndpi_flow+sizeof(curflow->ndpi_flow));
+    curflow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+    curflow->ndpi_flow = flow->ndpi_flow;
+    spin_unlock_bh (&flow_lock);
 
 
 	/* control the src or dst id into flow spinlock */
-        spin_lock_bh (&flow_lock);
-        src = ndpi_id_search (&osdpi_id_root, ipsrc);
+    spin_lock_bh (&flow_lock);
+    src = ndpi_id_search (&osdpi_id_root, ipsrc);
 	if (src == NULL) {
-                src = ndpi_alloc_id(ipsrc);
-                if (src == NULL) {
+        src = ndpi_alloc_id(ipsrc);
+        if (src == NULL) {
 			kmem_cache_free (osdpi_flow_cache, curflow);
 		        spin_unlock_bh (&flow_lock);
 			return proto;
@@ -536,12 +538,12 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 	}
 	else if (!exist_flow) kref_get (&src->refcnt);
 
-        dst = ndpi_id_search (&osdpi_id_root, ipdst);
+    dst = ndpi_id_search (&osdpi_id_root, ipdst);
 	if (dst == NULL) {
-                dst = ndpi_alloc_id(ipdst);
-                if (dst == NULL) {
+        dst = ndpi_alloc_id(ipdst);
+        if (dst == NULL) {
 			kmem_cache_free (osdpi_flow_cache, curflow);
-		        spin_unlock_bh (&flow_lock);
+            spin_unlock_bh (&flow_lock);
 			return proto;
 		}
 	}
@@ -666,13 +668,13 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
 		kfree_skb(linearized_skb);
 
 	spin_lock_bh (&ipq_lock);
-        if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags,proto) != 0) {
-		spin_unlock_bh (&ipq_lock);
-                return true;
-	}
+    if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags,proto) != 0) {
+        spin_unlock_bh(&ipq_lock);
+        return true;
+    }
 	spin_unlock_bh (&ipq_lock);
 
-        return false;
+    return false;
 }
 
 
