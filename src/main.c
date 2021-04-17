@@ -116,7 +116,7 @@ static void debug_printf(u32 protocol, void *id_struct,
         va_start(args, format);
         switch (log_level)
         {
-            case NDPI_LOG_ERROR: 
+            case NDPI_LOG_ERROR:
                 vprintk(format, args);
                 break;
             case NDPI_LOG_TRACE:
@@ -256,40 +256,40 @@ ndpi_id_release(struct kref *kref)
 static struct osdpi_flow_node *
 ndpi_alloc_flow (struct nf_conn * ct)
 {
-        struct osdpi_flow_node *flow;
+    struct osdpi_flow_node *flow;
 
 	flow = kmem_cache_zalloc (osdpi_flow_cache, GFP_ATOMIC);
 	//flow = kzalloc(sizeof(struct ndpi_flow_struct *) + size_flow_struct, GFP_KERNEL);
 
-        if (flow == NULL) {
-                pr_err("xt_ndpi: couldn't allocate new flow.\n");
-                return NULL;
-        }
+    if (flow == NULL) {
+            pr_err("xt_ndpi: couldn't allocate new flow.\n");
+            return NULL;
+    }
 	else {
-	        flow->ct = ct;
-	        flow->ndpi_flow = (struct ndpi_flow_struct *)
-	                ((char*)&flow->ndpi_flow+sizeof(flow->ndpi_flow));
-	        ndpi_flow_insert (&osdpi_flow_root, flow);
+        flow->ct = ct;
+        flow->ndpi_flow = (struct ndpi_flow_struct *)
+                ((char*)&flow->ndpi_flow+sizeof(flow->ndpi_flow));
+        ndpi_flow_insert (&osdpi_flow_root, flow);
 	}
 
-        return flow;
+    return flow;
 }
 
 static void
 nfndpi_free_flow (struct nf_conn * ct, struct osdpi_flow_node * auxflow)
 {
-        struct osdpi_flow_node * flow;
+    struct osdpi_flow_node * flow;
 
 	if (auxflow == NULL)
 	        flow = ndpi_flow_search (&osdpi_flow_root, ct);
 	else
 		flow = auxflow;
 
-        if (flow != NULL){
-                rb_erase (&flow->node, &osdpi_flow_root);
-	        kmem_cache_free (osdpi_flow_cache, flow);
-                //kfree (flow);
-        }
+    if (flow != NULL){
+            rb_erase (&flow->node, &osdpi_flow_root);
+        kmem_cache_free (osdpi_flow_cache, flow);
+            //kfree (flow);
+    }
 }
 
 
@@ -474,7 +474,6 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
             }
         }
 
-        pr_info("xt_ndpi: flow null, will alloc new\n");
         flow = ndpi_alloc_flow(ct);
         if (flow == NULL) {
             spin_unlock_bh (&flow_lock);
@@ -488,7 +487,6 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
         }
     }
     else {
-        pr_info("xt_ndpi: flow exist\n");
         /* Update timeouts */
         exist_flow=1;
         if (flow->detected_protocol.app_protocol) {
@@ -565,10 +563,11 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 		proto = curflow->detected_protocol.app_protocol;
 		flow->detected_protocol = curflow->detected_protocol;
 
-	        if (proto > NDPI_LAST_IMPLEMENTED_PROTOCOL)
-	                proto = NDPI_PROTOCOL_UNKNOWN;
+        if (proto > NDPI_LAST_IMPLEMENTED_PROTOCOL)
+            proto = NDPI_PROTOCOL_UNKNOWN;
 		else {
-		        if (flow->detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
+            if (flow->detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
+                pr_info ("xt_ndpi: protocol detected %s ( dst %pI4 )\n", prot_long_str[proto], ipdst);
 				/* update timeouts */
 				if (debug_dpi && proto <= NDPI_LAST_NFPROTO)
 					pr_info ("xt_ndpi: protocol detected %s ( dst %pI4 )\n", prot_long_str[proto], ipdst);
@@ -577,7 +576,7 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 
 				/* reset detection */
 				if (flow->ndpi_flow) memset(flow->ndpi_flow, 0, sizeof(*(flow->ndpi_flow)));
-		        }
+            }
 		}
 	}
 	kmem_cache_free (osdpi_flow_cache, curflow);
@@ -662,7 +661,7 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
         }
 
 	proto = ndpi_process_packet(ct, time, ip_hdr(skb_use), skb_use->len, tcph);
-	
+
 
 	if(linearized_skb != NULL)
 		kfree_skb(linearized_skb);
@@ -695,7 +694,7 @@ ndpi_mt_check(const struct xt_mtchk_param *par)
 }
 
 
-static void 
+static void
 ndpi_mt_destroy (const struct xt_mtdtor_param *par)
 {
 	const struct xt_ndpi_mtinfo *info = par->matchinfo;
@@ -725,7 +724,7 @@ static void ndpi_cleanup(void)
 	        kmem_cache_free (osdpi_flow_cache, flow);
         }
         kmem_cache_destroy (osdpi_flow_cache);
-        
+
         next = rb_first(&osdpi_id_root);
         while (next){
                 id = rb_entry(next, struct osdpi_id_node, node);
@@ -800,7 +799,7 @@ static int __init ndpi_mt_init(void)
                 ret = -ENOMEM;
                 goto err_ipq;
         }
-        
+
         osdpi_id_cache = kmem_cache_create("xt_ndpi_ids",
                                            sizeof(struct osdpi_id_node) +
                                            size_id_struct,
