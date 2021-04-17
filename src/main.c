@@ -27,7 +27,6 @@
 #include <linux/version.h>
 #include <linux/notifier.h>
 #include <linux/netfilter/x_tables.h>
-#include <linux/netfilter/xt_CT.h>
 #include <linux/skbuff.h>
 #include <linux/ip.h>
 #include <linux/if_ether.h>
@@ -37,17 +36,7 @@
 #include <net/tcp.h>
 
 #include <net/netfilter/nf_conntrack.h>
-#include <net/netfilter/nf_conntrack_l4proto.h>
-#include <net/netfilter/nf_conntrack_helper.h>
 #include <net/netfilter/nf_conntrack_ecache.h>
-#include <net/netfilter/nf_conntrack_l4proto.h>
-#include <net/netfilter/nf_conntrack_timeout.h>
-#include <net/netfilter/nf_conntrack_zones.h>
-
-
-#ifndef NDPI_LIB_COMPILATION
-#define NDPI_LIB_COMPILATION
-#endif
 
 #include "ndpi_main.h"
 #include "xt_ndpi.h"
@@ -344,8 +333,8 @@ ndpi_enable_protocols (const struct xt_ndpi_mtinfo*info)
 						 NDPI_ADD_PROTOCOL_TO_BITMASK(protocols_bitmask, NDPI_PROTOCOL_DNS);
 					if (ndpi_struct->proto_defaults[NDPI_PROTOCOL_HTTP].protoIdx == 0)
 						 NDPI_ADD_PROTOCOL_TO_BITMASK(protocols_bitmask, NDPI_PROTOCOL_HTTP);
-					if (ndpi_struct->proto_defaults[NDPI_PROTOCOL_TLS].protoIdx == 0)
-					 	 NDPI_ADD_PROTOCOL_TO_BITMASK(protocols_bitmask, NDPI_PROTOCOL_TLS);
+					if (ndpi_struct->proto_defaults[NDPI_PROTOCOL_SSL].protoIdx == 0)
+					 	 NDPI_ADD_PROTOCOL_TO_BITMASK(protocols_bitmask, NDPI_PROTOCOL_SSL);
 				}
 
 				atomic_inc(&protocols_cnt[i-1]);
@@ -407,8 +396,8 @@ static void ndpi_gc_flow(void)
 		if (flow && (t1 - flow->ndpi_timeout > 180)) {
 	                ct = flow->ct;
 			ipdst = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3;
-			if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
-				pr_info ("xt_ndpi: deleted by garbage collector - proto %s - dst %pI4\n", prot_long_str[flow->detected_protocol.app_protocol], ipdst);
+			if (debug_dpi && flow->detected_protocol.protocol <= NDPI_LAST_NFPROTO)
+				pr_info ("xt_ndpi: deleted by garbage collector - proto %s - dst %pI4\n", prot_long_str[flow->detected_protocol.protocol], ipdst);
 
 			nfndpi_free_id (&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3);
 			nfndpi_free_id (ipdst);
@@ -480,22 +469,22 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
                 else {
 			/* Include flow timeouts */
 			flow->ndpi_timeout = t1;  // 30s for DPI timeout  and 180 for connection
-		        flow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+		        flow->detected_protocol.protocol = NDPI_PROTOCOL_UNKNOWN;
 			flow->detection_completed = 0;
                 }
         }
         else {
 		/* Update timeouts */
 		exist_flow=1;
-		if (flow->detected_protocol.app_protocol) {
-			proto = flow->detected_protocol.app_protocol;
-			if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
-				pr_info ("xt_ndpi: flow detected %s ( dst %pI4 )\n", prot_long_str[flow->detected_protocol.app_protocol], ipdst);
+		if (flow->detected_protocol.protocol) {
+			proto = flow->detected_protocol.protocol;
+			if (debug_dpi && flow->detected_protocol.protocol <= NDPI_LAST_NFPROTO)
+				pr_info ("xt_ndpi: flow detected %s ( dst %pI4 )\n", prot_long_str[flow->detected_protocol.protocol], ipdst);
 			flow->ndpi_timeout = t1;
 			spin_unlock_bh (&flow_lock);
 			return proto;
 	        }
-	        else if (!flow->detected_protocol.app_protocol && (t1 - flow->ndpi_timeout > 30)) {
+	        else if (!flow->detected_protocol.protocol && (t1 - flow->ndpi_timeout > 30)) {
 			if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 expired\n", ipdst);
 			spin_unlock_bh (&flow_lock);
 			return NDPI_PROTOCOL_UNKNOWN;
@@ -516,7 +505,7 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
         curflow = kmem_cache_zalloc (osdpi_flow_cache, GFP_ATOMIC);
         curflow->ndpi_flow = (struct ndpi_flow_struct *)
                  ((char*)&curflow->ndpi_flow+sizeof(curflow->ndpi_flow));
-        curflow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+        curflow->detected_protocol.protocol = NDPI_PROTOCOL_UNKNOWN;
         curflow->ndpi_flow = flow->ndpi_flow;
         spin_unlock_bh (&flow_lock);
 
@@ -558,13 +547,13 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 	/* set detected protocol */
 	spin_lock_bh (&flow_lock);
 	if (flow != NULL) {
-		proto = curflow->detected_protocol.app_protocol;
+		proto = curflow->detected_protocol.protocol;
 		flow->detected_protocol = curflow->detected_protocol;
 
 	        if (proto > NDPI_LAST_IMPLEMENTED_PROTOCOL)
 	                proto = NDPI_PROTOCOL_UNKNOWN;
 		else {
-		        if (flow->detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
+		        if (flow->detected_protocol.protocol != NDPI_PROTOCOL_UNKNOWN) {
 				/* update timeouts */
 				if (debug_dpi && proto <= NDPI_LAST_NFPROTO)
 					pr_info ("xt_ndpi: protocol detected %s ( dst %pI4 )\n", prot_long_str[proto], ipdst);
@@ -691,6 +680,8 @@ ndpi_mt_check(const struct xt_mtchk_param *par)
 
 	return 0;
 }
+#endif
+
 
 
 static void 
@@ -700,7 +691,7 @@ ndpi_mt_destroy (const struct xt_mtdtor_param *par)
 
         ndpi_disable_protocols (info);
 
-}
+#endif
 
 
 
@@ -763,7 +754,7 @@ static int __init ndpi_mt_init(void)
 	ndpi_struct = ndpi_init_detection_module(detection_tick_resolution,
                                                      malloc_wrapper, free_wrapper, debug_printf);
         */
-	ndpi_struct = ndpi_init_detection_module(ndpi_no_prefs);
+	ndpi_struct = ndpi_init_detection_module();
 
 	if (ndpi_struct == NULL) {
 		pr_err("xt_ndpi: global structure initialization failed.\n");

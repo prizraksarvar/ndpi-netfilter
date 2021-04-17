@@ -631,6 +631,8 @@ static void addDefaultPort(ndpi_port_range *range,
   ndpi_default_ports_tree_node_t *ret;
   u_int16_t port;
 
+  // printf("[NDPI] %s(%d)\n", __FUNCTION__, port);
+
   for(port=range->port_low; port<=range->port_high; port++) {
     ndpi_default_ports_tree_node_t *node = (ndpi_default_ports_tree_node_t*)ndpi_malloc(sizeof(ndpi_default_ports_tree_node_t));
 

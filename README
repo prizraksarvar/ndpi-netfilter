@@ -48,3 +48,6 @@ Location:
 
 Once you have downloaded/installed each package and checked for the above
 kernel features you can read the INSTALL file.
+
+Links:
+https://elixir.bootlin.com/linux/v4.11.12/source/include/net/netfilter/nf_conntrack.h#L350
