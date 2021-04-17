@@ -53,7 +53,7 @@
 #include "xt_ndpi.h"
 
 /* Debug param */
-static int debug_dpi = 0;
+static int debug_dpi = 1;
 module_param(debug_dpi, int, 0);
 MODULE_PARM_DESC(debug_dpi, "Enable syslog debug");
 
@@ -464,41 +464,43 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
         t1 = (uint64_t) tv.tv_sec;
 
         if (flow == NULL) {
-		if (!gc_interval_timeout) gc_interval_timeout = t1;
-		else {
-			if (t1 - gc_interval_timeout > 59) {
-				ndpi_gc_flow();
-				gc_interval_timeout = t1;
-			}
-		}
-
-		flow = ndpi_alloc_flow(ct);
-                if (flow == NULL) {
-			spin_unlock_bh (&flow_lock);
-			return NDPI_PROTOCOL_UNKNOWN;
-		}
-                else {
-			/* Include flow timeouts */
-			flow->ndpi_timeout = t1;  // 30s for DPI timeout  and 180 for connection
-		        flow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-			flow->detection_completed = 0;
+            if (!gc_interval_timeout) {
+                gc_interval_timeout = t1;
+            }
+            else {
+                if (t1 - gc_interval_timeout > 59) {
+                    ndpi_gc_flow();
+                    gc_interval_timeout = t1;
                 }
+            }
+
+            flow = ndpi_alloc_flow(ct);
+            if (flow == NULL) {
+                spin_unlock_bh (&flow_lock);
+                return NDPI_PROTOCOL_UNKNOWN;
+            }
+            else {
+                /* Include flow timeouts */
+                flow->ndpi_timeout = t1;  // 30s for DPI timeout  and 180 for connection
+                    flow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+                flow->detection_completed = 0;
+            }
         }
         else {
-		/* Update timeouts */
-		exist_flow=1;
-		if (flow->detected_protocol.app_protocol) {
-			proto = flow->detected_protocol.app_protocol;
-			if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
-				pr_info ("xt_ndpi: flow detected %s ( dst %pI4 )\n", prot_long_str[flow->detected_protocol.app_protocol], ipdst);
-			flow->ndpi_timeout = t1;
-			spin_unlock_bh (&flow_lock);
-			return proto;
+            /* Update timeouts */
+            exist_flow=1;
+            if (flow->detected_protocol.app_protocol) {
+                proto = flow->detected_protocol.app_protocol;
+                if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
+                    pr_info ("xt_ndpi: flow detected %s ( dst %pI4 )\n", prot_long_str[flow->detected_protocol.app_protocol], ipdst);
+                flow->ndpi_timeout = t1;
+                spin_unlock_bh (&flow_lock);
+                return proto;
 	        }
 	        else if (!flow->detected_protocol.app_protocol && (t1 - flow->ndpi_timeout > 30)) {
-			if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 expired\n", ipdst);
-			spin_unlock_bh (&flow_lock);
-			return NDPI_PROTOCOL_UNKNOWN;
+                if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 expired\n", ipdst);
+                spin_unlock_bh (&flow_lock);
+                return NDPI_PROTOCOL_UNKNOWN;
 	        }
 	}
 
@@ -636,13 +638,11 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	if (ct == NULL){
 		if(linearized_skb != NULL)
 			kfree_skb(linearized_skb);
-        pr_info("xt_ndpi: nf_ct_get return null\n");
 		return false;
 	} else if (!ct){
 		pr_info ("xt_ndpi: ignoring untracked sk_buff.\n");
 		return false;
 	}
-    pr_info("xt_ndpi: nf_ct_get return conntrack, will proccess packet\n");
 
 	/* process the packet */
         ip = ip_hdr(skb_use);
