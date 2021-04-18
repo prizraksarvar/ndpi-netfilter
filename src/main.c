@@ -567,8 +567,7 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
             proto = NDPI_PROTOCOL_UNKNOWN;
 		else {
             if (flow->detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
-                pr_info ("xt_ndpi: protocol detected %s ( dst %pI4 )\n", prot_long_str[proto], ipdst);
-				/* update timeouts */
+                /* update timeouts */
 				if (debug_dpi && proto <= NDPI_LAST_NFPROTO)
 					pr_info ("xt_ndpi: protocol detected %s ( dst %pI4 )\n", prot_long_str[proto], ipdst);
 				flow->ndpi_timeout = t1;
@@ -683,7 +682,7 @@ ndpi_mt_check(const struct xt_mtchk_param *par)
 	const struct xt_ndpi_mtinfo *info = par->matchinfo;
 
         if (NDPI_BITMASK_IS_ZERO(info->flags)) {
-                pr_info("None selected protocol.\n");
+                pr_info("xt_ndpi: None selected protocol.\n");
                 return -EINVAL;
         }
 
