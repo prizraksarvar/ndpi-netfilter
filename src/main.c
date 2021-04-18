@@ -682,7 +682,7 @@ ndpi_mt_check(const struct xt_mtchk_param *par)
 	const struct xt_ndpi_mtinfo *info = par->matchinfo;
 
         if (NDPI_BITMASK_IS_ZERO(info->flags)) {
-                pr_info("None selected protocol.\n");
+                pr_info("xt_ndpi: None selected protocol.\n");
                 return -EINVAL;
         }
 
@@ -723,7 +723,7 @@ static void ndpi_cleanup(void)
 	        kmem_cache_free (osdpi_flow_cache, flow);
         }
         kmem_cache_destroy (osdpi_flow_cache);
-        
+
         next = rb_first(&osdpi_id_root);
         while (next){
                 id = rb_entry(next, struct osdpi_id_node, node);
@@ -798,7 +798,7 @@ static int __init ndpi_mt_init(void)
                 ret = -ENOMEM;
                 goto err_ipq;
         }
-        
+
         osdpi_id_cache = kmem_cache_create("xt_ndpi_ids",
                                            sizeof(struct osdpi_id_node) +
                                            size_id_struct,
