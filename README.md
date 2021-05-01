@@ -1,5 +1,5 @@
 This package is a GPL implementation of an iptables and netfilter module for
-nDPI integration into the Linux kernel.
+nDPI integration into the Linux kernel 5.4+.
 
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=4KDWWS2B2GBGQ&lc=BR&item_name=betolj%40gmail%2ecom" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" alt="PayPal — The safer, easier way to pay online."></a>
 
