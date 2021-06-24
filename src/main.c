@@ -27,7 +27,6 @@
 #include <linux/version.h>
 #include <linux/notifier.h>
 #include <linux/netfilter/x_tables.h>
-#include <linux/netfilter/xt_CT.h>
 #include <linux/skbuff.h>
 #include <linux/ip.h>
 #include <linux/if_ether.h>
@@ -37,13 +36,6 @@
 #include <net/tcp.h>
 
 #include <net/netfilter/nf_conntrack.h>
-#include <net/netfilter/nf_conntrack_l4proto.h>
-#include <net/netfilter/nf_conntrack_helper.h>
-#include <net/netfilter/nf_conntrack_ecache.h>
-#include <net/netfilter/nf_conntrack_l4proto.h>
-#include <net/netfilter/nf_conntrack_timeout.h>
-#include <net/netfilter/nf_conntrack_zones.h>
-
 
 #ifndef NDPI_LIB_COMPILATION
 #define NDPI_LIB_COMPILATION
