@@ -1,8 +1,10 @@
 NDPI_PATH2 := ${NDPI_PATH}/src
 NDPI_SRC := ndpi_cpy
+NDPI_PATCH := ${NDPI_SRC}/../../nDPI-patch/src
 NDPI_PRO := ${NDPI_SRC}/lib/protocols
 
 ccflags-y += -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/lib -DOPENDPI_NETFILTER_MODULE -DNDPI_IPTABLES_EXT
+PATCHED_FILES = $(basename $(shell cd ${NDPI_PATCH} ; find -type f -name "*.patch" | cut -c3-))
 
 MODULES_DIR := /lib/modules/$(shell uname -r)
 KERNEL_DIR ?= ${MODULES_DIR}/build
@@ -192,17 +194,10 @@ xt_ndpi-y := main.o \
                 # ${NDPI_SRC}/lib/MurmurHash3.o \
 
 all:
-	if test -d ${NDPI_SRC}; then \
-		cp ${NDPI_PATH2}/* ${NDPI_SRC} -R; \
-	else \
-		mkdir ${NDPI_SRC}; \
-		cp ${NDPI_PATH2}/* ${NDPI_SRC} -R; \
-	fi
-	#cp ${NDPI_SRC}/../../nDPI-patch/src/* ${NDPI_SRC}/ -R;
+all: patch
 	cp ${NDPI_SRC}/lib/third_party/src/*.c ${NDPI_SRC}/lib -R;
 	cp ${NDPI_SRC}/lib/third_party/include/*.h ${NDPI_SRC}/lib -R;
 	cp ${NDPI_SRC}/lib/third_party/include/*.h ${NDPI_SRC}/include -R;
-	sed -i "s/^\s*void ndpi_free_flow/\/\/void ndpi_free_flow/" ${NDPI_SRC}/include/ndpi_api.h;
 	make -C ${KERNEL_DIR} M=$$PWD;
 	rm -r ${NDPI_SRC}
 modules:
@@ -213,3 +208,15 @@ modules_install:
 clean:
 	make -C ${KERNEL_DIR} M=$$PWD $@;
 	rm -rf modules.order ${NDPI_SRC}
+patch: $(NDPI_SRC)
+        # Make a local copy of the upstream nDPI src
+	@echo "Copying..."
+	cp ${NDPI_PATH2}/* ${NDPI_SRC} -R;
+	@echo "Patching..."
+	for patch in ${PATCHED_FILES} ; do \
+	    patch ${NDPI_SRC}/$${patch} < ${NDPI_PATCH}/$${patch}.patch ; \
+	done;
+
+$(NDPI_SRC):
+	@echo "Creating $(NDPI_SRC)"
+	mkdir ${NDPI_SRC};
