@@ -26,6 +26,7 @@ install this module.
   apt-get install -y libxtables-dev
   apt-get install -y libip6tc-dev
   apt-get install -y libip4tc-dev
+  apt-get install -y libjson-c-dev
   apt-get install -y linux-source linux-headers-`uname -r`
   ln -s /usr/src/linux-headers-`uname -r` /lib/modules/`uname -r`/build
 ```
