@@ -1,6 +1,17 @@
---- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/include/ndpi_typedefs.h	2021-07-22 13:19:50.920012830 +0000
-+++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/include/ndpi_typedefs.h	2021-07-22 13:55:04.892101634 +0000
-@@ -431,13 +431,13 @@
+--- /home/chrisn/src/5/ndpi-netfilter/nDPI//src/include/ndpi_typedefs.h	2021-07-19 20:05:38.536140477 +0000
++++ /home/chrisn/src/5/ndpi-netfilter/nDPI-patch//src/include/ndpi_typedefs.h	2021-07-20 14:10:08.038873935 +0000
+@@ -27,6 +27,10 @@
+ #include "ndpi_define.h"
+ #include "ndpi_protocol_ids.h"
+ 
++#ifdef __KERNEL__
++#include <linux/version.h>
++#endif
++
+ /* NDPI_LOG_LEVEL */
+ typedef enum {
+ 	      NDPI_LOG_ERROR,
+@@ -431,17 +435,21 @@
  /* ************************************************************ */
  
  /* NDPI_PROTOCOL_BITTORRENT */
@@ -18,7 +29,15 @@
  
  struct hash_ip4p_node {
    struct hash_ip4p_node   *next,*prev;
-@@ -449,15 +449,15 @@
++#if !defined(__KERNEL__) || LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0)
+   time_t                  lchg;
++#else
++  time64_t                lchg;
++#endif
+   u_int16_t               port,count:12,flag:4;
+   u_int32_t               ip;
+   // + 12 bytes for ipv6
+@@ -449,15 +457,15 @@
  
  struct hash_ip4p {
    struct hash_ip4p_node   *top;
@@ -37,7 +56,7 @@
    struct hash_ip4p        tbl;
  };
  
-@@ -1007,8 +1007,6 @@
+@@ -1007,8 +1015,6 @@
  #define NUM_CUSTOM_CATEGORIES      5
  #define CUSTOM_CATEGORY_LABEL_LEN 32
  
@@ -46,7 +65,7 @@
  /* Needed to have access to HAVE_* defines */
  #include "ndpi_config.h"
  
-@@ -1146,8 +1144,6 @@
+@@ -1146,8 +1152,6 @@
  #endif
  };
  
