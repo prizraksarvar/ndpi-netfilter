@@ -1,0 +1,33 @@
+--- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/include/ndpi_define.h	2021-07-19 13:48:53.164008639 +0000
++++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/include/ndpi_define.h	2021-07-19 14:19:11.896085041 +0000
+@@ -44,6 +44,7 @@
+ #endif/* __OPENBSD__ */
+ 
+ 
++#ifndef __KERNEL__
+ #if __BYTE_ORDER == __LITTLE_ENDIAN
+ #ifndef __LITTLE_ENDIAN__
+ #define __LITTLE_ENDIAN__
+@@ -53,6 +54,7 @@
+ #define __BIG_ENDIAN__
+ #endif
+ #endif
++#endif
+ 
+ #ifdef WIN32
+ #ifndef __LITTLE_ENDIAN__
+@@ -328,9 +330,14 @@
+ #define get_l32(X,O)  get_u_int32_t(X,O)
+ #elif defined(__BIG_ENDIAN__) || defined(__BIG_ENDIAN)
+ /* convert the bytes from big to little endian */
++#ifndef __KERNEL__
+ # define get_l16(X,O) bswap_16(get_u_int16_t(X,O))
+ # define get_l32(X,O) bswap_32(get_u_int32_t(X,O))
+ #else
++# define get_l16(X,O) __cpu_to_le16(get_u_int16_t(X,O))
++# define get_l32(X,O) __cpu_to_le32(get_u_int32_t(X,O))
++#endif
++#else
+ #error "__BYTE_ORDER MUST BE DEFINED !"
+ #endif							/* __BYTE_ORDER */
+ 
