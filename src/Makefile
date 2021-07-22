@@ -3,7 +3,7 @@ NDPI_SRC := ndpi_cpy
 NDPI_PATCH := ${NDPI_SRC}/../../nDPI-patch/src
 NDPI_PRO := ${NDPI_SRC}/lib/protocols
 
-ccflags-y += -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/lib -DOPENDPI_NETFILTER_MODULE -DNDPI_IPTABLES_EXT
+ccflags-y += -w -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/lib -DOPENDPI_NETFILTER_MODULE -DNDPI_IPTABLES_EXT
 PATCHED_FILES = $(basename $(shell cd ${NDPI_PATCH} ; find -type f -name "*.patch" | cut -c3-))
 
 MODULES_DIR := /lib/modules/$(shell uname -r)
