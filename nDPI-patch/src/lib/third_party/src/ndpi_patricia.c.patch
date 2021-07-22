@@ -1,0 +1,57 @@
+--- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/lib/third_party/src/ndpi_patricia.c	2021-07-22 13:19:50.928012830 +0000
++++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/lib/third_party/src/ndpi_patricia.c	2021-07-22 16:37:46.880511718 +0000
+@@ -38,7 +38,7 @@
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+ */
+-
++#ifndef __KERNEL__
+ #include <assert.h> /* assert */
+ #include <ctype.h> /* isdigit */
+ #include <errno.h> /* errno */
+@@ -53,6 +53,9 @@
+ #include <netinet/in.h> /* BSD, Linux: for inet_addr */
+ #include <arpa/inet.h> /* BSD, Linux, Solaris: for inet_addr */
+ #endif
++#else
++#define assert(x)
++#endif
+ #include "ndpi_patricia.h"
+ #include "ndpi_api.h"
+ 
+@@ -178,7 +181,7 @@
+ #if defined(PATRICIA_IPV6)
+   else if(prefix->family == AF_INET6) {
+     char *r;
+-    r = (char *) inet_ntop (AF_INET6, &prefix->add.sin6, buff, 48 /* a guess value */ );
++    r = (char *) ndpi_inet_ntop (AF_INET6, &prefix->add.sin6, buff, 48 /* a guess value */ );
+     if(r && with_len) {
+       assert (prefix->bitlen <= sizeof(struct in6_addr) * 8);
+       sprintf (buff + strlen (buff), "/%d", prefix->bitlen);
+@@ -985,7 +988,7 @@
+   patricia_node_t *node;
+ 
+   prefix = ndpi_ascii2prefix (AF_INET, string);
+-  printf ("make_and_lookup: %s/%d\n", ndpi_prefix_toa (prefix), prefix->bitlen);
++  //printf ("make_and_lookup: %s/%d\n", ndpi_prefix_toa (prefix), prefix->bitlen);
+   node = ndpi_patricia_lookup (tree, prefix);
+   ndpi_Deref_Prefix (prefix);
+   return (node);
+@@ -998,13 +1001,13 @@
+   patricia_node_t *node;
+ 
+   prefix = ndpi_ascii2prefix (AF_INET, string);
+-  printf ("try_search_exact: %s/%d\n", ndpi_prefix_toa (prefix), prefix->bitlen);
++  //printf ("try_search_exact: %s/%d\n", ndpi_prefix_toa (prefix), prefix->bitlen);
+   if((node = patricia_search_exact (tree, prefix)) == NULL) {
+-    printf ("try_search_exact: not found\n");
++    //printf ("try_search_exact: not found\n");
+   }
+   else {
+-    printf ("try_search_exact: %s/%d found\n", 
+-	    ndpi_prefix_toa (node->prefix), node->prefix->bitlen);
++    //printf ("try_search_exact: %s/%d found\n", 
++    ndpi_prefix_toa (node->prefix), node->prefix->bitlen);
+   }
+   ndpi_Deref_Prefix (prefix);
+   return (node);
