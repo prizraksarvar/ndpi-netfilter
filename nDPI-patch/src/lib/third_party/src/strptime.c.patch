@@ -1,0 +1,11 @@
+--- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/lib/third_party/src/strptime.c	2021-07-22 13:19:50.928012830 +0000
++++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/lib/third_party/src/strptime.c	2021-07-22 13:53:01.440096448 +0000
+@@ -35,7 +35,7 @@
+ 	This file is used to implement the strptime API call that is missing on Windows
+ */
+ 
+-#ifdef WIN32
++#if defined(WIN32) || defined(__KERNEL__)
+ 
+ #include "ndpi_main.h"
+ 
