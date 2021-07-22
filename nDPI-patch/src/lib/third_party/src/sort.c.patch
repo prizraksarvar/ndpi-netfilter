@@ -1,0 +1,16 @@
+--- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/third_party/src/sort.c	2021-07-19 13:47:49.176005951 +0000
++++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/third_party/src/sort.c	2021-07-19 14:56:17.356178529 +0000
+@@ -9,9 +9,13 @@
+ typedef uint32_t u_int32_t;
+ #endif
+ 
++#ifndef __KERNEL__
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <sys/types.h>
++#else
++#include <linux/types.h>
++#endif
+ 
+ /* This is a function ported from the Linux kernel lib/sort.c */
+ 
