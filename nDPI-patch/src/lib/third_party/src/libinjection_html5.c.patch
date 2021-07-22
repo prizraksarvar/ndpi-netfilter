@@ -1,0 +1,14 @@
+--- ../../../../../nDPI/src/lib/third_party/src/libinjection_html5.c	2021-06-29 15:18:26.064077493 +0000
++++ ./libinjection_html5.c	2021-07-07 20:25:51.953071356 +0000
+@@ -1,7 +1,11 @@
+ #include "libinjection_html5.h"
+ 
++#ifndef __KERNEL__
+ #include <string.h>
+ #include <assert.h>
++#else
++#define assert(x)
++#endif
+ 
+ #ifdef DEBUG
+ #include <stdio.h>
