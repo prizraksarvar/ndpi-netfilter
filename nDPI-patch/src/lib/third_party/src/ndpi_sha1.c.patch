@@ -1,0 +1,45 @@
+--- /home/chris/src/CyberReef/nDPI/src/lib/third_party/src/ndpi_sha1.c	2021-06-14 12:55:42.818929629 -0400
++++ ./ndpi_sha1.c	2021-06-18 10:09:03.757744482 -0400
+@@ -21,12 +21,14 @@
+ 
+ #define SHA1HANDSOFF
+ 
++#ifndef __KERNEL__
+ #include <stdio.h>
+ #include <string.h>
+ #include <sys/types.h>	/* for u_int*_t */
+ #if defined(__sun)
+ #include "solarisfixes.h"
+ #endif
++#endif
+ #include "ndpi_main.h"
+ #include "ndpi_sha1.h"
+ 
+@@ -35,10 +37,17 @@
+ #endif
+ 
+ #ifndef BYTE_ORDER
++
++#ifndef __KERNEL__
++#if defined(linux) || defined(__linux__)
++#define USE_SYSTEM_ENDIAN
++#endif
++#endif
++
+ #if (BSD >= 199103)
+ # include <machine/endian.h>
+ #else
+-#if defined(linux) || defined(__linux__)
++#ifdef USE_SYSTEM_ENDIAN
+ # include <endian.h>
+ #else
+ #define	LITTLE_ENDIAN	1234	/* least-significant byte first (vax, pc) */
+@@ -47,7 +56,7 @@
+ 
+ #if defined(vax) || defined(ns32000) || defined(sun386) || defined(__i386__) || \
+     defined(MIPSEL) || defined(_MIPSEL) || defined(BIT_ZERO_ON_RIGHT) || \
+-    defined(__alpha__) || defined(__alpha)
++  defined(__alpha__) || defined(__alpha) || defined(__x86_64__)
+ #define BYTE_ORDER	LITTLE_ENDIAN
+ #endif
+ 
