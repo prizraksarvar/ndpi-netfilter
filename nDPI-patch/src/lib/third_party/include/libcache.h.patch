@@ -1,0 +1,12 @@
+--- /home/chris/src/CyberReef/nDPI/src/lib/third_party/include/libcache.h	2021-06-14 12:55:42.814929663 -0400
++++ ./libcache.h	2021-06-17 10:24:09.223356808 -0400
+@@ -27,7 +27,9 @@
+ #ifndef __DESELMO_LIBCACHE_H__
+ #define __DESELMO_LIBCACHE_H__
+ 
++#ifndef __KERNEL__
+ #include <stdint.h>
++#endif
+ 
+ typedef struct cache_entry *cache_entry;
+ 
