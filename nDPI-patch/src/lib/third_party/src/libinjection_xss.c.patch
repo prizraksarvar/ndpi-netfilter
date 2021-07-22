@@ -1,0 +1,15 @@
+--- ../../../../../nDPI/src/lib/third_party/src/libinjection_xss.c	2021-06-29 15:18:26.064077493 +0000
++++ ./libinjection_xss.c	2021-07-07 20:38:32.185103292 +0000
+@@ -3,8 +3,12 @@
+ #include "libinjection_xss.h"
+ #include "libinjection_html5.h"
+ 
++#ifndef __KERNEL__
+ #include <assert.h>
+ #include <stdio.h>
++#else
++#define assert(x)
++#endif
+ 
+ typedef enum attribute {
+     TYPE_NONE
