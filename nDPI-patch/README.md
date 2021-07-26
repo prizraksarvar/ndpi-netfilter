@@ -79,6 +79,28 @@ To patch errors in `src/ndpi_cpy/<somepath>/somefile.c`:
 
 ## Common Problems and Solutions
 
+### Protocol count mismatch
+
+If you see build output like
+```
+ndpi-netfilter/src/main.c:62:1: error: static assertion failed: "nDPI and ndpi-netfilter protocol counts do not match."
+   62 | _Static_assert(sizeof(prot_long_str)/sizeof(char*)
+      | ^~~~~~~~~~~~~~
+make[3]: *** [scripts/Makefile.build:271: /home/chrisn/src/6/ndpi-netfilter/src/main.o] Error 1
+```
+
+It most likely means that the nDPI project has added protocols.
+1. Compare `nDPI/src/include/ndpi_protocol_ids.h` to `src/xt_ndpi.h`.  You can get started by going into the nDPI submodule and doing something like:
+```
+git diff origin/3.4-stable..origin/dev src/include/ndpi_protocol_ids.h
+```
+2. In `src/xt_ndpi.h`, add rows to `NDPI_PROTOCOL_LONG_STRING` and
+`NDPI_PROTOCOL_SHORT_STRING` for the new protocols.
+1. In `src/Makefile`, add lines to the definition of `xt_ndpi-y` for
+the new protocols. (They should start with `${NDPI_PRO}/` and end with
+the name of the object file for the new protocol.  Try to keep those lines in alphabetical order.)
+1. Try to build.  Add patching as needed. (See below.)
+
 ### Reversed patch detected
 
 If you see build output like
