@@ -79,7 +79,7 @@ To patch errors in `src/ndpi_cpy/<somepath>/somefile.c`:
 
 ## Common Problems and Solutions
 
-### Revered patch detected
+### Reversed patch detected
 
 If you see build output like
 ```
@@ -87,7 +87,7 @@ patching file ndpi_cpy/include/ndpi_define.h
 Reversed (or previously applied) patch detected!  Assume -R? [n] n
 ```
 
-It mostly means that you haven't built the nDPI submodule yet,
+It most likely means that you haven't built the nDPI submodule yet,
 `ndpi_define.h` is created as part of that build.  Abort the
 `ndpi-netfilter` build and go build nDPI first.
 
