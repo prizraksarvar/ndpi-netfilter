@@ -1,0 +1,13 @@
+--- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/lib/third_party/include/libinjection_xss.h	2021-07-22 13:19:50.928012830 +0000
++++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/lib/third_party/include/libinjection_xss.h	2021-07-22 13:47:39.668082931 +0000
+@@ -10,8 +10,9 @@
+  */
+ 
+ /* pull in size_t */
+-
++#ifndef __KERNEL__
+ #include <string.h>
++#endif
+ 
+   int libinjection_is_xss(const char* s, size_t len, int flags);
+ 

@@ -1,0 +1,28 @@
+--- /home/chris/src/CyberReef/nDPI/src/lib/ndpi_community_id.c	2021-06-14 12:55:42.798929795 -0400
++++ ./ndpi_community_id.c	2021-06-17 15:09:03.136855936 -0400
+@@ -25,14 +25,17 @@
+ #include "ndpi_config.h"
+ #endif
+ 
++#ifndef __KERNEL__
+ #include <stdlib.h>
+ #include <errno.h>
+ #include <sys/types.h>
++#endif
+ 
+ #include "ndpi_api.h"
+ #include "ndpi_config.h"
+ #include "ndpi_includes.h"
+ 
++#ifndef __KERNEL__
+ #include <time.h>
+ #ifndef WIN32
+ #include <unistd.h>
+@@ -41,6 +44,7 @@
+ #if defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__
+ #include <sys/endian.h>
+ #endif
++#endif
+ 
+ #include "ndpi_sha1.h"
+ 

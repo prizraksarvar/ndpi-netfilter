@@ -1,0 +1,23 @@
+--- /home/chris/src/CyberReef/nDPI/src/lib/third_party/include/libinjection_sqli.h	2021-06-14 12:55:42.814929663 -0400
++++ ./libinjection_sqli.h	2021-06-18 10:22:45.236542113 -0400
+@@ -17,7 +17,11 @@
+ /*
+  * Pull in size_t
+  */
++#ifndef __KERNEL__
+ #include <string.h>
++#else
++#include <linux/types.h>
++#endif
+ 
+ enum sqli_flags {
+     FLAG_NONE            = 0
+@@ -112,7 +116,7 @@
+     /*
+      * Pointer to token position in tokenvec, above
+      */
+-    struct libinjection_sqli_token *current;
++    struct libinjection_sqli_token *cur;
+ 
+     /*
+      * fingerprint pattern c-string

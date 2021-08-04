@@ -1,0 +1,15 @@
+--- /home/chris/src/CyberReef/nDPI/src/lib/third_party/include/libinjection.h	2021-06-14 12:55:42.814929663 -0400
++++ ./libinjection.h	2021-06-18 10:31:27.167296829 -0400
+@@ -23,8 +23,11 @@
+ /*
+  * Pull in size_t
+  */
++#ifndef __KERNEL__
+ #include <string.h>
+-
++#else
++#include <linux/types.h>
++#endif
+ /*
+  * Version info.
+  *

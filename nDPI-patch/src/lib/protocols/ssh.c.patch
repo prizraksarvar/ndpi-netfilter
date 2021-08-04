@@ -1,0 +1,31 @@
+--- /home/chris/src/CyberReef/nDPI/src/lib/protocols/ssh.c	2021-06-14 12:55:42.814929663 -0400
++++ ./ssh.c	2021-06-18 16:26:16.678003188 -0400
+@@ -29,7 +29,9 @@
+ #include "ndpi_api.h"
+ #include "ndpi_md5.h"
+ 
++#ifndef __KERNEL__
+ #include <string.h>
++#endif
+ 
+ /*
+   HASSH - https://github.com/salesforce/hassh
+@@ -154,7 +156,8 @@
+   strncpy(cipher_copy, ciphers, cipher_len);
+   cipher_copy[cipher_len] = '\0';
+ 
+-  cipher = strtok_r(cipher_copy, ",", &rem);
++  rem = cipher_copy;
++  cipher = strsep(&rem, ",");
+ 
+   while(cipher && !found_obsolete_cipher) {
+     u_int i;
+@@ -171,7 +174,7 @@
+       }
+     }
+ 
+-    cipher = strtok_r(NULL, ",", &rem);
++    cipher = strsep(&rem, ",");
+   }
+ 
+   if(found_obsolete_cipher) {

@@ -1,0 +1,22 @@
+--- /home/chris/src/CyberReef/nDPI/src/lib/protocols/netflow.c	2021-06-14 12:55:42.810929695 -0400
++++ ./netflow.c	2021-06-18 16:47:15.247915724 -0400
+@@ -24,11 +24,17 @@
+ 
+ #include "ndpi_api.h"
+ 
+-
+ #ifdef WIN32
+ extern int gettimeofday(struct timeval * tp, struct timezone * tzp);
+ #endif
+-#define do_gettimeofday(a) gettimeofday(a, NULL)
++// See https://community.asterisk.org/t/cant-compile-dahdi-anymore-kernel-5-0-3-200-fc29-x86-64/79140/6
++static void do_gettimeofday(struct timeval *tv)
++{
++    struct timespec64 ts;
++    ktime_get_real_ts64(&ts);
++    tv->tv_sec = ts.tv_sec;
++    tv->tv_usec = ts.tv_nsec;
++}
+ 
+ struct flow_ver1_rec {
+   u_int32_t srcaddr;    /* Source IP Address */

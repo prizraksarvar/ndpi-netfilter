@@ -1,0 +1,51 @@
+#!/bin/bash
+# Repatch nDPI source from submodule
+
+if [ $# -ne 1 ] ; then
+    echo "Usage: $0 file-to-patch"
+    exit 1
+fi
+
+# Where this script resides.  We expect it to be the nDPI-patch/ 
+# subdirectory of where the source is checked out
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+
+# Where the source is checked out
+CHECKOUT_PATH=$(readlink -f "${SCRIPT_DIR}/..")
+
+# Where the NDPI submodule is checked out
+NDPI_ROOT=$(readlink -f "${CHECKOUT_PATH}/nDPI")
+
+# Where patching occurs
+PATCH_ROOT=$(readlink -f "${CHECKOUT_PATH}/nDPI-patch")
+
+# Where files may have been copied and patched already
+COPY_PATH=$(readlink -f "${CHECKOUT_PATH}/src/ndpi_cpy")
+
+if [ ! -d "$NDPI_ROOT" ] ; then
+    echo "Could not find NDPI source path '${NDPI_ROOT}'"
+    exit 2
+fi
+
+#echo "Using nDPI source in ${NDPI_ROOT}"
+
+# Get the path of the current directory relative to the patch
+# directory.  We'll be copying ${NDPI_ROOT}/${PATCH_PATH}/somefile
+# to ${PATCH_ROOT}/${PATCH_PATH}/somefile
+PATCH_DIR=`pwd`
+PATCH_PATH=${PATCH_DIR#$PATCH_ROOT}
+
+if [ -z $PATCH_PATH ] ; then
+    echo "Run $0 from the path you want to patch"
+    exit 3
+fi
+
+# Get the source from the updated distribution
+${SCRIPT_DIR}/cndpi $1
+
+# Apply the existing patch to it
+# Rejections here need rework
+patch "${PATCH_ROOT}/${PATCH_PATH}/$1" < "${PATCH_ROOT}/${PATCH_PATH}/$1.patch"
+
+# Update the patch
+${SCRIPT_DIR}/pndpi $1

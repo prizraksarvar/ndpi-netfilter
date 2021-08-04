@@ -14,7 +14,7 @@ Earlier versions of this module included documentation for
 reconfiguring the 2.x kernel to enable the required Netfilter
 Connection Tracking.  Around version 4.16 of the kernel, that was
 turned on by default so kernel changes are no longer required; this
-should work on generic Unbuntu 20.04.
+should work on generic Ubuntu 20.04.
 
 You _will_ need kernal headers and some other packages to build and
 install this module.
@@ -35,16 +35,18 @@ install this module.
 
 This module depends on
 [nDPI](https://www.ntop.org/products/deep-packet-inspection/ndpi/),
-"Open and Extensible LGPLv3 Deep Packet Inspection Library."  A fork
-of nDPI is included as a submodule of this repository.  You must clone this repository with a command like:
+"Open and Extensible LGPLv3 Deep Packet Inspection Library."  Their [GitHub repository](https://github.com/ntop/nDPI) is used as a submodule of this repository.  You must clone this repository with a command like:
 
 ```
-  git clone --recurse-submodules thisRepo
+  git clone --recurse-submodules https://github.com/TechTeamCR/ndpi-netfilter
 ```
 
-With that done, go to the `nDPI/` directory of the clone and do:
+With that done, go to where you cloned the code and do:
 
 ```
+  git submodule sync
+  git submodule update
+  cd nDPI
   ./autogen.sh && ./configure && make
   sudo make install
 ```
