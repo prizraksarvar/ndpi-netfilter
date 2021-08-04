@@ -45,7 +45,7 @@ With that done, go to where you cloned the code and do:
 
 ```
   git submodule sync
-  git submoudle update
+  git submodule update
   cd nDPI
   ./autogen.sh && ./configure && make
   sudo make install
