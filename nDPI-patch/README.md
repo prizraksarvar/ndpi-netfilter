@@ -196,3 +196,28 @@ to
 #define assert(x)
 #endif
 ```
+
+### Kernel Version Mismatch
+If you see an error like
+```
+unkown type name 'time_t'
+```
+during compilation, this may stem from a mismatch in kernel versions.
+Between versions 5.4 and 5.8, the Linux Kernel changed how it keeps
+track of time. The type `time_t` probably isn't supported in the kernel
+you are using, so you will need to rollback.
+
+1. Install 5.4 kernel then reboot
+```
+$ sudo apt install linux-generic
+$ reboot
+```
+1. Log back in and list the kernel packages
+```
+$ dpkg --list | grep linux
+```
+1. Remove 5.8 headers, modules, modules-extra packages and reboot again
+```
+$ sudo apt remove <package1> <package2> ...
+$ reboot
+```
