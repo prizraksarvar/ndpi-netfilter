@@ -199,8 +199,8 @@ to
 
 ### Kernel Version Mismatch
 
-Between versions 5.4 and 5.8, the Linux Kernel changed how it keeps
-track of time. `nDPI` has 5.4 assumptions baked in.  If you see an error like
+After version 5.4, the Linux kernel changed how it keeps track of
+time. `nDPI` has 5.4 assumptions baked in.  If you see an error like
 ```
 unkown type name 'time_t'
 ```
@@ -212,16 +212,16 @@ make[2]: Leaving directory '/usr/src/linux-headers-5.8.0-1040-generic'
 giving you insight on which kernel version you are building with.
 
 To rollback:
-1. Install 5.4 kernel then reboot
+1. Install the 5.4 kernel then reboot
     ```
     $ sudo apt install linux-generic
     $ reboot
     ```
-1. Log back in and list the kernel packages
+1. Log back in and list the kernel packages for the version you are using
     ```
-    $ dpkg --list | grep linux
+    $ dpkg --list | grep <version>
     ```
-1. Remove 5.8 headers, modules, modules-extra packages and reboot again
+1. Remove the `headers`, `modules`, and `modules-extra` packages for the version you were using and reboot again
     ```
     $ sudo apt remove <package1> <package2> ...
     $ reboot
