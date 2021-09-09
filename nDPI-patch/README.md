@@ -196,3 +196,33 @@ to
 #define assert(x)
 #endif
 ```
+
+### Kernel Version Mismatch
+
+After version 5.4, the Linux kernel changed how it keeps track of
+time. `nDPI` has 5.4 assumptions baked in.  If you see an error like
+```
+unkown type name 'time_t'
+```
+during the build process, this may mean `time_t` is no longer supported 
+and you will need to rollback. You should also see a line like
+```
+make[2]: Leaving directory '/usr/src/linux-headers-5.8.0-1040-generic'
+```
+giving you insight on which kernel version you are building with.
+
+To rollback:
+1. Install the 5.4 kernel then reboot
+    ```
+    $ sudo apt install linux-generic
+    $ reboot
+    ```
+1. Log back in and list the kernel packages with the version you are moving from.
+    ```
+    $ dpkg --list | grep <version>
+    ```
+1. Remove the `headers`, `modules`, and `modules-extra` packages that were found in the previous step and reboot again
+    ```
+    $ sudo apt remove <package1> <package2> ...
+    $ reboot
+    ```
