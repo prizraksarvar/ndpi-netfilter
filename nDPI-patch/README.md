@@ -221,7 +221,7 @@ To rollback:
     ```
     $ dpkg --list | grep <version>
     ```
-1. Remove the `headers`, `modules`, and `modules-extra` packages for the version you were using and reboot again
+1. Remove the `headers`, `modules`, and `modules-extra` packages that were found in the previous step and reboot again
     ```
     $ sudo apt remove <package1> <package2> ...
     $ reboot
