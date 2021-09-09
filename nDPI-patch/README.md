@@ -217,7 +217,7 @@ To rollback:
     $ sudo apt install linux-generic
     $ reboot
     ```
-1. Log back in and list the kernel packages for the version you are using
+1. Log back in and list the kernel packages with the version you are moving from.
     ```
     $ dpkg --list | grep <version>
     ```
