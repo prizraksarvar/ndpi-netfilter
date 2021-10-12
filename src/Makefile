@@ -2,7 +2,7 @@ NDPI_PATH2 := ${NDPI_PATH}/src
 NDPI_SRC := ndpi_cpy
 NDPI_PRO := ${NDPI_SRC}/lib/protocols
 
-ccflags-y += -I/usr/include/json-c -I/usr/include -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/lib -DOPENDPI_NETFILTER_MODULE -DNDPI_LIB_COMPILATION -DNDPI_IPTABLES_EXT
+ccflags-y += -I/usr/include/json-c -I/usr/include -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/lib -DOPENDPI_NETFILTER_MODULE -DNDPI_LIB_COMPILATION -DNDPI_IPTABLES_EXT -std=c99
 
 MODULES_DIR := /lib/modules/$(shell uname -r)
 KERNEL_DIR ?= ${MODULES_DIR}/build
@@ -202,7 +202,7 @@ all:
 	cp ${NDPI_SRC}/lib/third_party/src/*.c ${NDPI_SRC}/lib -R;
 	cp ${NDPI_SRC}/lib/third_party/include/*.h ${NDPI_SRC}/lib -R;
 	cp ${NDPI_SRC}/lib/third_party/include/*.h ${NDPI_SRC}/include -R;
-	sed -i "s/^\s*void ndpi_free_flow/\/\/void ndpi_free_flow/" ${NDPI_SRC}/include/ndpi_api.h;
+# 	sed -i "s/^\s*void ndpi_free_flow/\/\/void ndpi_free_flow/" ${NDPI_SRC}/include/ndpi_api.h;
 	make -C ${KERNEL_DIR} M=$$PWD;
 	rm -r ${NDPI_SRC}
 modules:
