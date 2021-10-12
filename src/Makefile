@@ -2,7 +2,7 @@ NDPI_PATH2 := ${NDPI_PATH}/src
 NDPI_SRC := ndpi_cpy
 NDPI_PRO := ${NDPI_SRC}/lib/protocols
 
-ccflags-y += -I/usr/include/json-c -I/usr/include -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/lib -DOPENDPI_NETFILTER_MODULE -DNDPI_LIB_COMPILATION -DNDPI_IPTABLES_EXT -std=c99
+ccflags-y += -I/usr/include/json-c -I/usr/include -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/lib -DOPENDPI_NETFILTER_MODULE -DNDPI_LIB_COMPILATION -DNDPI_IPTABLES_EXT -std=gnu99
 
 MODULES_DIR := /lib/modules/$(shell uname -r)
 KERNEL_DIR ?= ${MODULES_DIR}/build
