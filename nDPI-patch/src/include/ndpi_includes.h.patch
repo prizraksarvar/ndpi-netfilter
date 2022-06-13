@@ -43,3 +43,12 @@
  
  #if defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__
  #include <netinet/in.h>
+@@ -70,7 +84,7 @@
+ #if defined __OpenBSD__
+ #include "ndpi_includes_OpenBSD.h"
+ #else
+-typedef struct timeval pkt_timeval;
++typedef struct __kernel_old_timeval pkt_timeval;
+ #endif /* __OpenBSD__ */
+ 
+ #endif /* __NDPI_INCLUDES_H__ */
