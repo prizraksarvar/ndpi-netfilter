@@ -1,6 +1,6 @@
 --- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/protocols/tls.c	2021-07-19 13:47:49.176005951 +0000
 +++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2021-07-19 15:26:20.240254265 +0000
-@@ -29,6 +29,43 @@
+@@ -29,6 +29,44 @@
  #include "ndpi_md5.h"
  #include "ndpi_sha1.h"
  
@@ -20,7 +20,8 @@
 +    return era * 146097 + doe - 719468;
 +}
 +
-+static time_t timegm(struct tm* t)
++// Not y2038 safe but notBefore and notAfter are both this type.
++static u_int32_t timegm(struct tm* t)
 +{
 +    int year = t->tm_year + 1900;
 +    int month = t->tm_mon;          // 0-11
@@ -44,7 +45,7 @@
  extern char *strptime(const char *s, const char *format, struct tm *tm);
  extern int processClientServerHello(struct ndpi_detection_module_struct *ndpi_struct,
  				    struct ndpi_flow_struct *flow, uint32_t quic_version);
-@@ -342,7 +379,7 @@
+@@ -342,7 +380,7 @@
  
  	if(len < (sizeof(utcDate)-1)) {
  	  struct tm utc;
@@ -53,7 +54,7 @@
  
  	  strncpy(utcDate, (const char*)&packet->payload[i+4], len);
  	  utcDate[len] = '\0';
-@@ -376,7 +413,7 @@
+@@ -376,7 +414,7 @@
  
  	    if(len < (sizeof(utcDate)-1)) {
  	      struct tm utc;
