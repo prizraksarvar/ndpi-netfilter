@@ -32,12 +32,15 @@
  /* *********************************************************************
   * ---------------------------------------------------------------------
   *                      Time functions
-@@ -685,10 +688,11 @@
+@@ -682,13 +685,14 @@
+ ndpi_log_timestamp(char *log_ts, uint32_t log_ts_len)
+ {
+   pkt_timeval tv;
++#if 0
    time_t nowtime;
    struct tm nowtm_r;
    char tmbuf[NDPI_TIMESTAMP_LEN];
 -
-+#if 0
    gettimeofday(&tv, NULL);
    nowtime = tv.tv_sec;
    localtime_r(&nowtime, &nowtm_r);
