@@ -343,7 +343,7 @@ ndpi_enable_protocols (const struct xt_ndpi_mtinfo*info)
 				spin_lock_bh (&ipq_lock);
 
 				//Force http or ssl detection for webserver host requests
-	                        if (nfndpi_protocols_http[i]) {
+	                        if (nfndpi_protocols_http[i-1]) {
 					if (ndpi_struct->proto_defaults[NDPI_PROTOCOL_DNS].protoIdx == 0)
 						 NDPI_ADD_PROTOCOL_TO_BITMASK(protocols_bitmask, NDPI_PROTOCOL_DNS);
 					if (ndpi_struct->proto_defaults[NDPI_PROTOCOL_HTTP].protoIdx == 0)
@@ -775,7 +775,7 @@ static int __init ndpi_mt_init(void)
                 goto err_out;
 	}
 
-        for (i = 0; i <= NDPI_LAST_IMPLEMENTED_PROTOCOL; i++){
+        for (i = 0; i < NDPI_LAST_IMPLEMENTED_PROTOCOL; i++){
                 atomic_set (&protocols_cnt[i], 0);
 
                 // Set HTTP based protocols
