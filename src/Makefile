@@ -217,6 +217,10 @@ patch: $(NDPI_SRC)
 	for patch in ${PATCHED_FILES} ; do \
 	    patch ${NDPI_SRC}/$${patch} < ${NDPI_PATCH}/$${patch}.patch ; \
 	done;
+	@if [ "`find ${NDPI_SRC} -type f -name '*.rej'`" != "" ] ; then \
+	    >&2 echo  "Patching failed.  Check '.rej' files"; \
+	    exit 1; \
+	fi
 
 $(NDPI_SRC):
 	@echo "Creating $(NDPI_SRC)"
