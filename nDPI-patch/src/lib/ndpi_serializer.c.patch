@@ -1,5 +1,5 @@
---- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/ndpi_serializer.c	2021-07-19 13:47:49.164005951 +0000
-+++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/ndpi_serializer.c	2021-07-19 14:12:14.712067516 +0000
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_serializer.c	2022-06-30 09:34:28.866051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_serializer.c	2022-06-30 11:26:26.042333451 -0400
 @@ -22,14 +22,17 @@
  #include "ndpi_config.h"
  #endif
@@ -26,16 +26,16 @@
  
  #ifdef WIN32
  #define NDPI_I64_FORMAT "%" PRId64
-@@ -190,7 +194,7 @@
+@@ -203,7 +207,7 @@
  
  static int ndpi_init_serializer_buffer(ndpi_private_serializer_buffer *buffer, u_int32_t buffer_size) {
    buffer->initial_size = buffer->size = buffer_size;
 -  buffer->data = (u_int8_t *) calloc(buffer->size, sizeof(u_int8_t));
 +  buffer->data = (u_int8_t *)ndpi_calloc(buffer->size, sizeof(u_int8_t));
    if(buffer->data == NULL)
-     return -1;
-   return 0;
-@@ -255,7 +259,7 @@
+     return(-1);
+ 
+@@ -269,7 +273,7 @@
    new_size = buffer->size + min_len;
    new_size = ((new_size / 4) + 1) * 4; /* required by zmq encryption */
  
@@ -44,7 +44,7 @@
  
    if(r == NULL)
      return(-1);
-@@ -418,13 +422,13 @@
+@@ -433,13 +437,13 @@
    ndpi_private_serializer *serializer = (ndpi_private_serializer*)_serializer;
  
    if(serializer->buffer.data) {
@@ -60,7 +60,7 @@
      serializer->header.size = 0;
      serializer->header.data = NULL;
    }
-@@ -553,11 +557,12 @@
+@@ -568,11 +572,12 @@
  /* ********************************** */
  
  /* TODO: fix portability across platforms */
@@ -74,7 +74,7 @@
  /* ********************************** */
  
  static inline void ndpi_deserialize_single_string(ndpi_private_deserializer *deserializer,
-@@ -1004,7 +1009,7 @@
+@@ -1019,7 +1024,7 @@
  }
  
  /* ********************************** */
@@ -83,7 +83,7 @@
  int ndpi_serialize_uint32_float(ndpi_serializer *_serializer,
  				u_int32_t key, float value,
                                  const char *format /* e.f. "%.2f" */) {
-@@ -1058,7 +1063,7 @@
+@@ -1073,7 +1078,7 @@
    serializer->status.flags |= NDPI_SERIALIZER_STATUS_NOT_EMPTY;
    return(0);
  }
@@ -92,7 +92,7 @@
  /* ********************************** */
  
  static int ndpi_serialize_uint32_binary(ndpi_serializer *_serializer,
-@@ -1496,7 +1501,7 @@
+@@ -1575,7 +1580,7 @@
  }
  
  /* ********************************** */
@@ -101,7 +101,7 @@
  int ndpi_serialize_binary_float(ndpi_serializer *_serializer,
  			        const char *key,
  			        u_int16_t klen,
-@@ -1562,7 +1567,7 @@
+@@ -1643,7 +1648,7 @@
  				const char *format /* e.f. "%.2f" */) {
    return(ndpi_serialize_binary_float(_serializer, key, strlen(key), value, format));
  }
@@ -110,7 +110,7 @@
  /* ********************************** */
  
  /* Key is a <string, len> pair, value is a raw value */
-@@ -2063,9 +2068,11 @@
+@@ -2185,9 +2190,11 @@
    case ndpi_serialization_int64:
      size = sizeof(u_int64_t);
      break;
@@ -122,7 +122,7 @@
    case ndpi_serialization_string:
    case ndpi_serialization_start_of_block:
    case ndpi_serialization_start_of_list:
-@@ -2352,7 +2359,7 @@
+@@ -2474,7 +2481,7 @@
  }
  
  /* ********************************** */
@@ -131,7 +131,7 @@
  int ndpi_deserialize_value_float(ndpi_deserializer *_deserializer,
  				 float *value) {
    ndpi_private_deserializer *deserializer = (ndpi_private_deserializer*)_deserializer;
-@@ -2381,7 +2388,7 @@
+@@ -2503,7 +2510,7 @@
  
    return(0);
  }
@@ -140,7 +140,7 @@
  /* ********************************** */
  
  /* Return the string value for the current element */
-@@ -2467,6 +2474,7 @@
+@@ -2589,6 +2596,7 @@
  /* ********************************** */
  
  /* Clone all elements in deserializer to serializer (this can be used to convert a TLV record to JSON) */
@@ -148,7 +148,7 @@
  int ndpi_deserialize_clone_all(ndpi_deserializer *deserializer, ndpi_serializer *serializer) {
    ndpi_serialization_type kt, et;
    u_int32_t u32, k32;
-@@ -2558,5 +2566,5 @@
+@@ -2680,5 +2688,5 @@
  
    return(0);
  }

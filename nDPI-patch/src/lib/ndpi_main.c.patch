@@ -1,5 +1,5 @@
---- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2021-07-22 13:19:50.924012830 +0000
-+++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2021-07-22 13:43:02.264071278 +0000
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2022-06-30 09:34:28.866051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2022-07-01 15:08:55.258877612 -0400
 @@ -21,9 +21,11 @@
   *
   */
@@ -12,7 +12,7 @@
  
  #define NDPI_CURRENT_PROTO NDPI_PROTOCOL_UNKNOWN
  
-@@ -32,24 +34,50 @@
+@@ -32,24 +34,51 @@
  #include "ahocorasick.h"
  #include "libcache.h"
  
@@ -22,8 +22,8 @@
  #endif
  
 +#ifdef __KERNEL__
-+#include <linux/version.h>
-+#define printf printk
++# include <linux/version.h>
++# define printf printk
 +#else
  #include <time.h>
  #ifndef WIN32
@@ -38,8 +38,8 @@
 +#endif
  
  #include "ndpi_content_match.c.inc"
+ #include "ndpi_azure_match.c.inc"
  #include "third_party/include/ndpi_patricia.h"
- #include "third_party/include/ht_hash.h"
  #include "third_party/include/ndpi_md5.h"
  
 +#ifdef __KERNEL__
@@ -61,22 +61,23 @@
 +  return *(unsigned int*)arr;
 +}
 +#endif
- /* stun.c */
- extern u_int32_t get_stun_lru_key(struct ndpi_flow_struct *flow, u_int8_t rev);
++
+ static int _ndpi_debug_callbacks = 0;
  
-@@ -84,7 +112,11 @@
- /* ****************************************** */
+ /* #define DGA_DEBUG 1 */
+@@ -152,7 +181,11 @@
  
  void *ndpi_malloc(size_t size) {
+   __sync_fetch_and_add(&ndpi_tot_allocated_memory, size);
 +#ifndef __KERNEL__
    return(_ndpi_malloc ? _ndpi_malloc(size) : malloc(size));
 +#else
 +  return(_ndpi_malloc ? _ndpi_malloc(size) : kmalloc(size, GFP_KERNEL));  
 +#endif
  }
- void *ndpi_flow_malloc(size_t size) {
-   return(_ndpi_flow_malloc ? _ndpi_flow_malloc(size) : ndpi_malloc(size));
-@@ -110,7 +142,11 @@
+ 
+ /* ****************************************** */
+@@ -183,7 +216,11 @@
        _ndpi_free(ptr);
    } else {
      if(ptr)
@@ -88,15 +89,32 @@
    }
  }
  
-@@ -551,6 +587,7 @@
+@@ -482,7 +519,7 @@
  
- /* Self check function to be called onli for testing purposes */
+ void ndpi_default_ports_tree_node_t_walker(const void *node, const ndpi_VISIT which, const int depth) {
+   ndpi_default_ports_tree_node_t *f = *(ndpi_default_ports_tree_node_t **) node;
+-
++#if 0
+   printf("<%d>Walk on node %s (%u)\n", depth,
+ 	 which == ndpi_preorder ?
+ 	 "ndpi_preorder" :
+@@ -490,6 +527,7 @@
+ 	 "ndpi_postorder" :
+ 	 which == ndpi_endorder ? "ndpi_endorder" : which == ndpi_leaf ? "ndpi_leaf" : "unknown",
+ 	 f->default_port);
++#endif
+ }
+ 
+ /* ******************************************************************** */
+@@ -718,6 +756,7 @@
+ 
+ /* Self check function to be called only for testing purposes */
  void ndpi_self_check_host_match() {
 +#if 0
    u_int32_t i, j;
  
-   for (i = 0; host_match[i].string_to_match != NULL; i++) {
-@@ -563,6 +600,7 @@
+   for(i = 0; host_match[i].string_to_match != NULL; i++) {
+@@ -730,6 +769,7 @@
        }
      }
    }
@@ -104,7 +122,23 @@
  }
  
  /* ******************************************************************** */
-@@ -1704,10 +1742,11 @@
+@@ -828,6 +868,7 @@
+ /* ******************************************************************** */
+ 
+ static void ndpi_validate_protocol_initialization(struct ndpi_detection_module_struct *ndpi_str) {
++#if 0
+   u_int i, val;
+ 
+   for(i = 0; i < ndpi_str->ndpi_num_supported_protocols; i++) {
+@@ -850,6 +891,7 @@
+     NDPI_LOG_ERR(ndpi_str,  "[NDPI] INTERNAL ERROR Invalid ndpi_known_risks[] initialization [%u != %u]\n", val, NDPI_MAX_RISK);
+     exit(0);
+   }
++#endif
+ }
+ 
+ /* ******************************************************************** */
+@@ -2059,10 +2101,11 @@
  */
  int ndpi_load_ipv4_ptree(struct ndpi_detection_module_struct *ndpi_str,
  			 const char *path, u_int16_t protocol_id) {
@@ -117,15 +151,15 @@
  
    fd = fopen(path, "r");
  
-@@ -1745,6 +1784,7 @@
+@@ -2100,6 +2143,7 @@
    }
  
    fclose(fd);
-+ #endif
++#endif
    return(num_loaded);
  }
  
-@@ -1804,7 +1844,12 @@
+@@ -2159,7 +2203,11 @@
      }
    }
  
@@ -134,20 +168,19 @@
 +#else
 +  in4_pton(value, -1, (__u8*)&pin, '\0', NULL);
 +#endif
-+
  
    if((node = add_to_ptree(ndpi_str->protocols_ptree, AF_INET, &pin, bits)) != NULL) {
-     node->value.uv.user_value = protocol_id, node->value.uv.additional_user_value = htons(port);
-@@ -2000,7 +2045,7 @@
-   NDPI_BITMASK_RESET(ndpi_str->debug_bitmask);
- #endif /* NDPI_ENABLE_DEBUG_MESSAGES */
+     node->value.u.uv32.user_value = protocol_id, node->value.u.uv32.additional_user_value = htons(port);
+@@ -2358,7 +2406,7 @@
+   if(prefs & ndpi_enable_ja3_plus)
+     ndpi_str->enable_ja3_plus = 1;
  
 -#ifdef HAVE_LIBGCRYPT
 +#if defined(HAVE_LIBGCRYPT) && !defined(__KERNEL__)
    if(!(prefs & ndpi_dont_init_libgcrypt)) {
      if(!gcry_control (GCRYCTL_INITIALIZATION_FINISHED_P)) {
        const char *gcrypt_ver = gcry_check_version(NULL);
-@@ -2284,7 +2329,12 @@
+@@ -2716,7 +2764,12 @@
    if(ptr)
      ptr[0] = '\0';
  
@@ -159,9 +192,73 @@
 +#endif
 +  if(i == 1) {
      /* Search IP */
-     prefix_t prefix;
-     patricia_node_t *node;
-@@ -2688,9 +2738,10 @@
+     ndpi_prefix_t prefix;
+     ndpi_patricia_node_t *node;
+@@ -2953,7 +3006,7 @@
+ 	  if(((icmp_type >= 44) && (icmp_type <= 252))
+ 	     || (icmp_code > 15))
+ 	    ndpi_set_risk(ndpi_str, flow, NDPI_MALFORMED_PACKET);
+-
++#if 0
+ 	  if (packet->payload_packet_len > sizeof(struct ndpi_icmphdr)) {
+ 	    flow->entropy = ndpi_entropy(packet->payload + sizeof(struct ndpi_icmphdr),
+ 	                                 packet->payload_packet_len - sizeof(struct ndpi_icmphdr));
+@@ -2962,6 +3015,7 @@
+ 	      ndpi_set_risk(ndpi_str, flow, NDPI_SUSPICIOUS_ENTROPY);
+ 	    }
+ 	  }
++#endif
+ 	}
+       }
+       return(NDPI_PROTOCOL_IP_ICMP);
+@@ -3034,6 +3088,7 @@
+ 
+ int ndpi_add_ip_risk_mask(struct ndpi_detection_module_struct *ndpi_str,
+ 			  char *ip, ndpi_risk mask) {
++#if 0
+   char *saveptr, *addr = strtok_r(ip, "/", &saveptr);
+ 
+   if(addr) {
+@@ -3051,6 +3106,9 @@
+       return(-1);
+   } else
+     return(-2);
++#else
++  return(0);
++#endif
+ }
+ 
+ /* ******************************************************************** */
+@@ -3128,9 +3186,9 @@
+     if((quote = strchr(buf, '"')) != NULL)
+       quote[0] = '\0';
+ 
+-    head->value = strdup(buf);
++    head->value = ndpi_strdup(buf);
+   } else
+-    head->value = strdup(dn);
++    head->value = ndpi_strdup(dn);
+ 
+   if(head->value == NULL) {
+     ndpi_free(head);
+@@ -3145,6 +3203,7 @@
+ /* ******************************************************************** */
+ 
+ int ndpi_handle_rule(struct ndpi_detection_module_struct *ndpi_str, char *rule, u_int8_t do_add) {
++#if 0
+   char *at, *proto, *elem;
+   ndpi_proto_defaults_t *def;
+   u_int subprotocol_id, i;
+@@ -3284,7 +3343,7 @@
+ 	ndpi_remove_host_url_subprotocol(ndpi_str, value, subprotocol_id);
+     }
+   }
+-
++#endif
+   return(0);
+ }
+ 
+@@ -3300,9 +3359,10 @@
   *  - empty lines or lines starting with # are ignored
   */
  int ndpi_load_categories_file(struct ndpi_detection_module_struct *ndpi_str, const char *path) {
@@ -173,7 +270,7 @@
  
    fd = fopen(path, "r");
  
-@@ -2727,7 +2778,7 @@
+@@ -3339,7 +3399,7 @@
  
    fclose(fd);
    ndpi_enable_loaded_categories(ndpi_str);
@@ -182,15 +279,80 @@
    return(num);
  }
  
-@@ -2749,6 +2800,7 @@
+@@ -3372,9 +3432,10 @@
+  *  - you can add a .<domain name> to avoid mismatches
+  */
+ int ndpi_load_risk_domain_file(struct ndpi_detection_module_struct *ndpi_str, const char *path) {
++  int len, num = 0;
++#if 0
+   char buffer[128], *line;
+   FILE *fd;
+-  int len, num = 0;
+ 
+   fd = fopen(path, "r");
+ 
+@@ -3404,7 +3465,7 @@
+ 
+   if(ndpi_str->risky_domain_automa.ac_automa)
+     ac_automata_finalize((AC_AUTOMATA_t *)ndpi_str->risky_domain_automa.ac_automa);
+-
++#endif
+   return(num);
+ }
+ 
+@@ -3417,9 +3478,10 @@
+  *
+  */
+ int ndpi_load_malicious_ja3_file(struct ndpi_detection_module_struct *ndpi_str, const char *path) {
++  int len, num = 0;
++#if 0
+   char buffer[128], *line, *str;
+   FILE *fd;
+-  int len, num = 0;
+ 
+   if(ndpi_str->malicious_ja3_automa.ac_automa == NULL)
+     ndpi_str->malicious_ja3_automa.ac_automa = ac_automata_init(NULL);
+@@ -3462,7 +3524,7 @@
+   }
+ 
+   fclose(fd);
+-
++#endif
+   return(num);
+ }
+ 
+@@ -3478,11 +3540,12 @@
+  */
+ int ndpi_load_malicious_sha1_file(struct ndpi_detection_module_struct *ndpi_str, const char *path)
+ {
++  int num = 0;
++#if 0
+   char buffer[128];
+   char *first_comma, *second_comma, *str;
+   FILE *fd;
+   size_t i, len;
+-  int num = 0;
+ 
+   if (ndpi_str->malicious_sha1_automa.ac_automa == NULL)
+     ndpi_str->malicious_sha1_automa.ac_automa = ac_automata_init(NULL);
+@@ -3529,7 +3592,7 @@
+     if (ndpi_add_string_to_automa(ndpi_str->malicious_sha1_automa.ac_automa, str) >= 0)
+       num++;
+   }
+-
++#endif
+   return num;
+ }
+ 
+@@ -3551,6 +3614,7 @@
  
  */
  int ndpi_load_protocols_file(struct ndpi_detection_module_struct *ndpi_str, const char *path) {
 +#if 0
    FILE *fd;
    char *buffer, *old_buffer;
-   int chunk_len = 512, buffer_len = chunk_len, old_buffer_len;
-@@ -2811,6 +2863,9 @@
+   int chunk_len = 1024, buffer_len = chunk_len, old_buffer_len;
+@@ -3613,6 +3677,9 @@
  
   error:
    return(rc);
@@ -200,96 +362,85 @@
  }
  
  /* ******************************************************************** */
-@@ -4277,7 +4332,12 @@
+@@ -5314,7 +5381,12 @@
        bits = atoi(ptr);
    }
  
 -  if(inet_pton(AF_INET, ipbuf, &pin) != 1) {
 +#ifndef __KERNEL__
-+    int i = inet_pton(AF_INET, ipbuf, &pin);
++  int i = inet_pton(AF_INET, ipbuf, &pin);
 +#else
-+    int i = in4_pton(ipbuf, -1, (__u8*)&pin, '\0', NULL);
++  int i = in4_pton(ipbuf, -1, (__u8*)&pin, '\0', NULL);
 +#endif
-+    if(i != 1) {
++  if(i != 1) {
      NDPI_LOG_DBG2(ndpi_str, "Invalid ip/ip+netmask: %s\n", ip_address_and_mask);
      return(-1);
    }
-@@ -4314,7 +4374,7 @@
-   memset(&ac_pattern, 0, sizeof(ac_pattern));
+@@ -6584,7 +6656,7 @@
+   const u_int8_t *a = (const u_int8_t *) &ip->ipv4;
  
-   if(ndpi_str->custom_categories.hostnames_shadow.ac_automa == NULL) {
--    free(name);
-+    ndpi_free(name);
-     return(-1);
-   }
- 
-@@ -4323,12 +4383,12 @@
- 
-   rc = ac_automata_add(ndpi_str->custom_categories.hostnames_shadow.ac_automa, &ac_pattern);
-   if(rc != ACERR_DUPLICATE_PATTERN && rc != ACERR_SUCCESS) {
--    free(name);
-+    ndpi_free(name);
-     return(-1);
-   }
- 
-   if(rc == ACERR_DUPLICATE_PATTERN)
--    free(name);
-+    ndpi_free(name);
- 
-   return(0);
- }
-@@ -5691,7 +5751,7 @@
- 
- #ifdef NDPI_DETECTION_SUPPORT_IPV6
    if(ndpi_is_ipv6(ip)) {
 -    if(inet_ntop(AF_INET6, &ip->ipv6.u6_addr, buf, buf_len) == NULL)
 +    if(ndpi_inet_ntop(AF_INET6, &ip->ipv6.u6_addr, buf, buf_len) == NULL)
        buf[0] = '\0';
  
      return(buf);
-@@ -5710,12 +5770,23 @@
-   int rv = -1;
+@@ -6603,10 +6675,20 @@
    memset(parsed_ip, 0, sizeof(*parsed_ip));
  
-+  int i;
    if(strchr(ip_str, '.')) {
 -    if(inet_pton(AF_INET, ip_str, &parsed_ip->ipv4) > 0)
 +#ifndef __KERNEL__
-+    i = inet_pton(AF_INET, ip_str, &parsed_ip->ipv4);
++    rv = inet_pton(AF_INET, ip_str, &parsed_ip->ipv4);
 +#else
-+    i = in4_pton(ip_str, -1, (__u8*)&parsed_ip->ipv4, '\0', NULL);
++    rv = in4_pton(ip_str, -1, (__u8*)&parsed_ip->ipv4, '\0', NULL);
 +#endif
-+    if(i > 0)
++    if (rv > 0)
        rv = 4;
- #ifdef NDPI_DETECTION_SUPPORT_IPV6
    } else {
 -    if(inet_pton(AF_INET6, ip_str, &parsed_ip->ipv6) > 0)
 +#ifndef __KERNEL__
-+    i = inet_pton(AF_INET6, ip_str, &parsed_ip->ipv6);
++    rv = inet_pton(AF_INET6, ip_str, &parsed_ip->ipv6);
 +#else
-+    i = in6_pton(ip_str, -1, (__u8*)&parsed_ip->ipv6, '\0', NULL);
-+#endif    
-+    if(i > 0)
++    rv = in6_pton(ip_str, -1, (__u8*)&parsed_ip->ipv6, '\0', NULL);
++#endif
++    if (rv > 0)
        rv = 6;
- #endif
    }
-@@ -6378,7 +6449,6 @@
+ 
+@@ -6993,6 +7075,7 @@
+ /* Helper function used to generate Options fields in OPNsense */
+ 
+ void ndpi_generate_options(u_int opt) {
++#if 0
+   struct ndpi_detection_module_struct *ndpi_str;
+   NDPI_PROTOCOL_BITMASK all;
+   u_int i;
+@@ -7042,6 +7125,7 @@
+   }
+ 
+   exit(0);
++#endif
+ }
+ 
+ /* ****************************************************** */
+@@ -7349,7 +7433,6 @@
    return(0);
  }
  
 -#ifdef CODE_UNUSED
  int NDPI_BITMASK_IS_EMPTY(NDPI_PROTOCOL_BITMASK a) {
-   int i;
+   unsigned int i;
  
-@@ -6389,6 +6459,7 @@
+@@ -7360,6 +7443,7 @@
    return(1);
  }
  
 +#ifdef CODE_UNUSED
  void NDPI_DUMP_BITMASK(NDPI_PROTOCOL_BITMASK a) {
-   int i;
+   unsigned int i;
  
-@@ -6404,7 +6475,7 @@
+@@ -7375,7 +7459,7 @@
  }
  
  const char *ndpi_get_gcrypt_version(void) {
@@ -298,13 +449,22 @@
    return gcry_check_version(NULL);
  #endif
    return NULL;
-@@ -6831,7 +6902,8 @@
-     tmp[j] = '\0';
-     len = j;
+@@ -7794,7 +7878,7 @@
+       struct in_addr ip_addr;
  
--    for(word = strtok_r(tmp, ".", &tok_tmp); ; word = strtok_r(NULL, ".", &tok_tmp)) {
-+    char* p = tmp;
-+    while ((word = strsep(&p, ".")) != NULL) {
-       if(!word) break;
+       ip_addr.s_addr = inet_addr(name);
+-      if(strcmp(inet_ntoa(ip_addr), name) == 0)
++      if(strcmp(ndpi_inet_ntoa(ip_addr), name) == 0)
+ 	return(0); /* Ignore numeric IPs */
+     }
  
-       num_words++;
+@@ -7924,7 +8008,8 @@
+       tmp[j] = '\0';
+       len = j;
+ 
+-      for(word = strtok_r(tmp, ".", &tok_tmp); ; word = strtok_r(NULL, ".", &tok_tmp)) {
++      char* p = tmp;
++      while ((word = strsep(&p, ".")) != NULL) {
+ 	if(!word) break;
+ 
+ 	num_words++;

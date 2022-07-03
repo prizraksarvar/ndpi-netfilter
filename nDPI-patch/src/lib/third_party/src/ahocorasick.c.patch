@@ -1,32 +1,13 @@
---- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/third_party/src/ahocorasick.c	2021-07-19 13:47:49.176005951 +0000
-+++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/third_party/src/ahocorasick.c	2021-07-19 15:28:29.700259703 +0000
-@@ -18,11 +18,12 @@
-  You should have received a copy of the GNU Lesser General Public License
-  along with multifast.  If not, see <http://www.gnu.org/licenses/>.
- */
--
-+#ifndef __KERNEL__
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- #include <ctype.h>
-+#endif
- 
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/third_party/src/ahocorasick.c	2022-06-30 09:34:28.890051275 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/third_party/src/ahocorasick.c	2022-07-01 11:29:20.182324150 -0400
+@@ -43,6 +43,10 @@
  #include "ndpi_api.h"
  #include "ahocorasick.h"
-@@ -244,6 +245,7 @@
-  ******************************************************************************/
- void ac_automata_display (AC_AUTOMATA_t * thiz, char repcast)
- {
-+#if 0
-   unsigned int i, j;
-   AC_NODE_t * n;
-   struct edge * e;
-@@ -286,6 +288,7 @@
-     }
-     printf("---------------------------------\n");
-   }
-+#endif
- }
  
- /******************************************************************************
++#ifdef __KERNEL__
++#define printf printk
++#endif
++
+ /* TODO: For different depth of node, number of outgoing edges differs
+    considerably, It is efficient to use different chunk size for 
+    different depths */

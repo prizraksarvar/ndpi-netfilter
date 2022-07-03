@@ -1,8 +1,8 @@
---- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/protocols/tls.c	2021-07-19 13:47:49.176005951 +0000
-+++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2021-07-19 15:26:20.240254265 +0000
-@@ -29,6 +29,43 @@
- #include "ndpi_md5.h"
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/tls.c	2022-06-30 09:34:28.886051275 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2022-07-01 13:21:50.358607713 -0400
+@@ -27,6 +27,43 @@
  #include "ndpi_sha1.h"
+ #include "ndpi_encryption.h"
  
 +#ifndef MIN
 +#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
@@ -44,7 +44,7 @@
  extern char *strptime(const char *s, const char *format, struct tm *tm);
  extern int processClientServerHello(struct ndpi_detection_module_struct *ndpi_struct,
  				    struct ndpi_flow_struct *flow, uint32_t quic_version);
-@@ -342,7 +379,7 @@
+@@ -418,7 +455,7 @@
  
  	if(len < (sizeof(utcDate)-1)) {
  	  struct tm utc;
@@ -53,7 +53,7 @@
  
  	  strncpy(utcDate, (const char*)&packet->payload[i+4], len);
  	  utcDate[len] = '\0';
-@@ -376,7 +413,7 @@
+@@ -452,7 +489,7 @@
  
  	    if(len < (sizeof(utcDate)-1)) {
  	      struct tm utc;
@@ -62,3 +62,22 @@
  
  	      strncpy(utcDate, (const char*)&packet->payload[offset], len);
  	      utcDate[len] = '\0';
+@@ -534,7 +571,7 @@
+ 			       packet->payload[i+2] & 0xFF,
+ 			       packet->payload[i+3] & 0xFF);
+ 		    } else if(len == 16 /* IPv6 */){
+-		      inet_ntop(AF_INET6, &packet->payload[i], dNSName, sizeof(dNSName));
++		      ndpi_inet_ntop(AF_INET6, &packet->payload[i], dNSName, sizeof(dNSName));
+ 		    } else {
+ 		      /* Is that possibile? Better safe than sorry */
+ 		      dNSName[0] = '\0';
+@@ -1236,7 +1273,8 @@
+   if(extension_id > 59 && extension_id != 65281)
+   {
+     u_int8_t extension_found = 0;
+-    for (size_t i = 0; i < allowed_non_iana_extensions_size; ++i)
++    size_t i;
++    for (i = 0; i < allowed_non_iana_extensions_size; ++i)
+     {
+       if(allowed_non_iana_extensions[i] == extension_id)
+       {

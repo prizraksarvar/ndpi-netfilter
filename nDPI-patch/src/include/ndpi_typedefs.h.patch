@@ -1,53 +1,16 @@
---- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/include/ndpi_typedefs.h	2021-07-22 13:19:50.920012830 +0000
-+++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/include/ndpi_typedefs.h	2021-07-22 13:55:04.892101634 +0000
-@@ -431,13 +431,13 @@
- /* ************************************************************ */
- 
- /* NDPI_PROTOCOL_BITTORRENT */
--typedef struct spinlock {
-+typedef struct ndpispinlock {
-   volatile int    val;
--} spinlock_t;
-+} ndpispinlock_t;
- 
--typedef struct atomic {
-+typedef struct ndpiatomic {
-   volatile int counter;
--} atomic_t;
-+} ndpiatomic_t;
- 
- struct hash_ip4p_node {
-   struct hash_ip4p_node   *next,*prev;
-@@ -449,15 +449,15 @@
- 
- struct hash_ip4p {
-   struct hash_ip4p_node   *top;
--  spinlock_t              lock;
-+  ndpispinlock_t          lock;
-   size_t                  len;
- };
- 
- struct hash_ip4p_table {
-   size_t                  size;
-   int			  ipv6;
--  spinlock_t              lock;
--  atomic_t                count;
-+  ndpispinlock_t              lock;
-+  ndpiatomic_t                count;
-   struct hash_ip4p        tbl;
- };
- 
-@@ -1007,8 +1007,6 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/include/ndpi_typedefs.h	2022-06-30 09:34:28.846051273 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/include/ndpi_typedefs.h	2022-06-30 11:21:30.962321055 -0400
+@@ -956,8 +956,6 @@
  #define NUM_CUSTOM_CATEGORIES      5
  #define CUSTOM_CATEGORY_LABEL_LEN 32
  
 -#ifdef NDPI_LIB_COMPILATION
 -
  /* Needed to have access to HAVE_* defines */
+ #ifndef _NDPI_CONFIG_H_
  #include "ndpi_config.h"
- 
-@@ -1146,8 +1144,6 @@
- #endif
+@@ -1100,8 +1098,6 @@
+   struct ndpi_packet_struct packet;
  };
  
 -#endif /* NDPI_LIB_COMPILATION */

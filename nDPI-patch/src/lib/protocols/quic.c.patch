@@ -1,6 +1,6 @@
---- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/protocols/quic.c	2021-07-19 13:47:49.172005951 +0000
-+++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/protocols/quic.c	2021-07-19 16:17:34.992383430 +0000
-@@ -17,19 +17,24 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/quic.c	2022-06-30 09:34:28.882051275 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/quic.c	2022-07-01 13:38:30.514649728 -0400
+@@ -17,19 +17,26 @@
   * If not, see <http://www.gnu.org/licenses/>.
   *
   */
@@ -9,6 +9,8 @@
  #if defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__
  #include <sys/endian.h>
  #endif
++#else
++#include "ndpi_define.h"
 +#endif
  
  #include "ndpi_protocol_ids.h"
@@ -27,16 +29,23 @@
  // #define DEBUG_CRYPT
  // #define QUIC_DEBUG
  
-@@ -92,7 +97,7 @@
-     return (uint8_t)version;
+@@ -121,13 +128,13 @@
+ 
    return 0;
  }
 -#ifdef HAVE_LIBGCRYPT
-+#if defined(HAVE_LIBGCRYPT) && !defined(__KERNEL__)
++
  static int is_quic_ver_less_than(uint32_t version, uint8_t max_version)
  {
    uint8_t u8_ver = get_u8_quic_ver(version);
-@@ -198,7 +203,7 @@
+   return u8_ver && u8_ver <= max_version;
+ }
+-#endif
++
+ static int is_quic_ver_greater_than(uint32_t version, uint8_t min_version)
+ {
+   return get_u8_quic_ver(version) >= min_version;
+@@ -243,7 +250,7 @@
  }
  
  
@@ -45,12 +54,12 @@
  
  #ifdef DEBUG_CRYPT
  char *__gcry_err(gpg_error_t err, char *buf, size_t buflen)
-@@ -1036,7 +1041,7 @@
- 		   version, source_conn_id_len);
+@@ -1297,7 +1304,7 @@
+ 		   version, dest_conn_id_len);
        return NULL;
      }
 -#ifdef HAVE_LIBGCRYPT
 +#if defined(HAVE_LIBGCRYPT) && !defined(__KERNEL__)
+     source_conn_id_len = packet->payload[6 + dest_conn_id_len];
      const u_int8_t *dest_conn_id = &packet->payload[6];
      clear_payload = decrypt_initial_packet(ndpi_struct, flow,
- 					   dest_conn_id, dest_conn_id_len,

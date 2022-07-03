@@ -1,46 +1,91 @@
---- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/ndpi_analyze.c	2021-07-19 13:47:49.160005950 +0000
-+++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/ndpi_analyze.c	2021-07-19 14:05:58.316051704 +0000
-@@ -324,13 +324,13 @@
- void ndpi_free_bin(struct ndpi_bin *b) {
-   switch(b->family) {
-   case ndpi_bin_family8:
--    free(b->u.bins8);
-+    ndpi_free(b->u.bins8);
-     break;
-   case ndpi_bin_family16:
--    free(b->u.bins16);
-+    ndpi_free(b->u.bins16);
-     break;
-   case ndpi_bin_family32:
--    free(b->u.bins32);
-+    ndpi_free(b->u.bins32);
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_analyze.c	2022-06-30 09:34:28.846051273 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_analyze.c	2022-07-01 15:41:39.018960106 -0400
+@@ -34,6 +34,9 @@
+ #include "ndpi_api.h"
+ #include "ndpi_config.h"
+ 
++#ifdef __KERNEL__
++#define printf printk
++#endif
+ /* ********************************************************************************* */
+ 
+ void ndpi_init_data_analysis(struct ndpi_analyze_struct *ret, u_int16_t _max_series_len) {
+@@ -232,6 +235,7 @@
+ /* ********************************************************************************* */
+ 
+ void ndpi_data_print_window_values(struct ndpi_analyze_struct *s) {
++#if 0
+   if(s->num_values_array_len) {
+     u_int16_t i, n = ndpi_min(s->num_data_entries, s->num_values_array_len);
+ 
+@@ -240,6 +244,7 @@
+ 
+     printf("\n");
+   }
++#endif
+ }
+ 
+ /* ********************************************************************************* */
+@@ -495,6 +500,7 @@
+ /* ********************************************************************************* */
+ 
+ char* ndpi_print_bin(struct ndpi_bin *b, u_int8_t normalize_first, char *out_buf, u_int out_buf_len) {
++#if 0
+   u_int16_t i;
+   u_int len = 0;
+ 
+@@ -531,7 +537,7 @@
+     }
      break;
    }
+-
++#endif
+   return(out_buf);
  }
-@@ -347,7 +347,7 @@
-   switch(out->family) {
-   case ndpi_bin_family8:
-     if((out->u.bins8 = (u_int8_t*)ndpi_calloc(out->num_bins, sizeof(u_int8_t))) == NULL) {
--      free(out);
-+      ndpi_free(out);
-       return(NULL);
-     } else
-       memcpy(out->u.bins8, b->u.bins8, out->num_bins*sizeof(u_int8_t));
-@@ -355,7 +355,7 @@
  
-   case ndpi_bin_family16:
-     if((out->u.bins16 = (u_int16_t*)ndpi_calloc(out->num_bins, sizeof(u_int16_t))) == NULL) {
--      free(out);
-+      ndpi_free(out);
-       return(NULL);
-     } else
-       memcpy(out->u.bins16, b->u.bins16, out->num_bins*sizeof(u_int16_t));
-@@ -363,7 +363,7 @@
+@@ -623,6 +629,7 @@
+   See
+   - https://en.wikipedia.org/wiki/K-means_clustering
+  */
++#if 0
+ int ndpi_cluster_bins(struct ndpi_bin *bins, u_int16_t num_bins,
+ 		      u_int8_t num_clusters, u_int16_t *cluster_ids,
+ 		      struct ndpi_bin *centroids) {
+@@ -825,6 +832,7 @@
  
-   case ndpi_bin_family32:
-     if((out->u.bins32 = (u_int32_t*)ndpi_calloc(out->num_bins, sizeof(u_int32_t))) == NULL) {
--      free(out);
-+      ndpi_free(out);
-       return(NULL);
-     } else
-       memcpy(out->u.bins32, b->u.bins32, out->num_bins*sizeof(u_int32_t));
+   return(0);
+ }
++#endif
+ 
+ /* ********************************************************************************* */
+ 
+@@ -1245,6 +1253,7 @@
+   Computes the best alpha value using the specified values used for training
+ */
+ void ndpi_ses_fitting(double *values, u_int32_t num_values, float *ret_alpha) {
++#if 0  
+   u_int i;
+   float alpha, best_alpha;
+   double sse, lowest_sse;
+@@ -1292,6 +1301,7 @@
+     printf("BEST [alpha: %.2f][SSE: %.2f]\n", best_alpha, lowest_sse);
+ 
+   *ret_alpha = best_alpha;
++#endif
+ }
+ 
+ /* *********************************************************** */
+@@ -1375,6 +1385,7 @@
+   Computes the best alpha and beta values using the specified values used for training
+ */
+ void ndpi_des_fitting(double *values, u_int32_t num_values, float *ret_alpha, float *ret_beta) {
++#if 0
+   u_int i;
+   float alpha, best_alpha, best_beta, beta = 0;
+   double sse, lowest_sse;
+@@ -1424,4 +1435,5 @@
+     printf("BEST [alpha: %.2f][beta: %.2f][SSE: %.2f]\n", best_alpha, best_beta, lowest_sse);
+ 
+   *ret_alpha = best_alpha, *ret_beta = best_beta;
++#endif
+ }

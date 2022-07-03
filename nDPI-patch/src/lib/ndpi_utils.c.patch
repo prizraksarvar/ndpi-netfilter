@@ -1,6 +1,6 @@
---- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/lib/ndpi_utils.c	2021-07-22 13:19:50.924012830 +0000
-+++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/lib/ndpi_utils.c	2021-07-22 15:34:43.560352788 +0000
-@@ -21,11 +21,11 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_utils.c	2022-06-30 09:34:28.866051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_utils.c	2022-07-01 15:57:47.823000804 -0400
+@@ -21,12 +21,12 @@
   *
   */
  
@@ -8,13 +8,14 @@
 +#ifndef __KERNEL__
  #include <stdlib.h>
  #include <errno.h>
+ #include <math.h>
  #include <sys/types.h>
 -
 +#endif
  
  #define NDPI_CURRENT_PROTO NDPI_PROTOCOL_UNKNOWN
  
-@@ -36,10 +36,13 @@
+@@ -38,10 +38,13 @@
  #include "ahocorasick.h"
  #include "libcache.h"
  
@@ -28,7 +29,7 @@
  
  #if defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__
  #include <sys/endian.h>
-@@ -191,6 +194,17 @@
+@@ -214,6 +217,17 @@
  }
  
  /* ****************************************** */
@@ -46,26 +47,7 @@
  
  /* Walk the nodes of a tree */
  static void ndpi_tdestroy_recurse(ndpi_node* root, void (*free_action)(void *))
-@@ -1070,7 +1084,8 @@
-   }
- 
-   if(i) {
--    for(int j = i; j < 3; j++)
-+    int j;
-+    for(j = i; j < 3; j++)
-       char_array_3[j] = '\0';
- 
-     char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-@@ -1078,7 +1093,7 @@
-     char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-     char_array_4[3] = char_array_3[2] & 0x3f;
- 
--    for(int j = 0; (j < i + 1); j++)
-+    for(j = 0; (j < i + 1); j++)
-       ret[len++] = base64_table[char_array_4[j]];
- 
-     while((i++ < 3))
-@@ -1118,6 +1133,7 @@
+@@ -1153,6 +1167,7 @@
  		  struct ndpi_flow_struct *flow,
  		  ndpi_protocol l7_protocol,
  		  ndpi_serializer *serializer) {
@@ -73,7 +55,7 @@
    char buf[64];
  
    if(flow == NULL) return(-1);
-@@ -1166,7 +1182,7 @@
+@@ -1204,7 +1219,7 @@
      ndpi_serialize_string_uint32(serializer, "query_type",  flow->protos.dns.query_type);
      ndpi_serialize_string_uint32(serializer, "rsp_type",    flow->protos.dns.rsp_type);
  
@@ -82,7 +64,7 @@
      ndpi_serialize_string_string(serializer, "rsp_addr",    buf);
      ndpi_serialize_end_of_block(serializer);
      break;
-@@ -1319,7 +1335,7 @@
+@@ -1386,7 +1401,7 @@
      }
      break;
    } /* switch */
@@ -91,7 +73,7 @@
    return(0);
  }
  
-@@ -1341,11 +1357,11 @@
+@@ -1408,11 +1423,11 @@
      return(-1);
  
    if(ip_version == 4) {
@@ -107,8 +89,19 @@
      /* For consistency across platforms replace :0: with :: */
      ndpi_patchIPv6Address(src_name), ndpi_patchIPv6Address(dst_name);
    }
-@@ -1488,7 +1504,7 @@
-     #endif
+@@ -1533,8 +1548,8 @@
+ static void ndpi_compile_rce_regex() {
+   const char *pcreErrorStr;
+   int pcreErrorOffset;
+-
+-  for(int i = 0; i < N_RCE_REGEX; i++) {
++  int i;
++  for(i = 0; i < N_RCE_REGEX; i++) {
+     comp_rx[i] = (struct pcre_struct*)ndpi_malloc(sizeof(struct pcre_struct));
+ 
+     comp_rx[i]->compiled = pcre_compile(rce_regex[i], 0, &pcreErrorStr,
+@@ -1559,7 +1574,7 @@
+ #endif
    }
  
 -  free((void *)pcreErrorStr);
@@ -116,7 +109,18 @@
  }
  
  static int ndpi_is_rce_injection(char* query) {
-@@ -1563,7 +1579,7 @@
+@@ -1570,8 +1585,8 @@
+ 
+   int pcreExecRet;
+   int subStrVec[30];
+-
+-  for(int i = 0; i < N_RCE_REGEX; i++) {
++  int i;
++  for(i = 0; i < N_RCE_REGEX; i++) {
+     unsigned int length = strlen(query);
+ 
+     pcreExecRet = pcre_exec(comp_rx[i]->compiled,
+@@ -1634,7 +1649,7 @@
  /* ********************************** */
  
  ndpi_risk_enum ndpi_validate_url(char *url) {
@@ -125,7 +129,7 @@
    ndpi_risk_enum rc = NDPI_NO_RISK;
  
    if(question_mark) {
-@@ -1573,7 +1589,8 @@
+@@ -1644,7 +1659,8 @@
  
      if(!str) goto validate_rc;
  
@@ -135,12 +139,55 @@
  
      while(str != NULL) {
        char *value = strchr(str, '=');
-@@ -1613,7 +1630,7 @@
+@@ -1684,7 +1700,7 @@
  	  break;
        }
-       
+ 
 -      str = strtok_r(NULL, "&", &tmp);
 +      str = strsep(&p, "&");
      }
    }
+ 
+@@ -2195,8 +2211,8 @@
+ 
+ int ndpi_is_printable_string(char * const str, size_t len) {
+   int retval = 1;
+-
+-  for (size_t i = 0; i < len; ++i) {
++  size_t i;
++  for (i = 0; i < len; ++i) {
+     if (ndpi_isprint(str[i]) == 0) {
+       str[i] = '?';
+       retval = 0;
+@@ -2207,7 +2223,7 @@
+ }
+ 
+ /* ******************************************************************** */
+-
++#if 0
+ float ndpi_entropy(u_int8_t const * const buf, size_t len) {
+   float entropy = 0.0f;
+   u_int32_t byte_counters[256];
+@@ -2226,9 +2242,9 @@
+     float const p = (float)byte_counters[i] / len;
+     entropy += p * log2f(1 / p);
+   }
+-
+   return entropy;
+ }
++#endif
+ 
+ /* ******************************************* */
+ 
+@@ -2282,7 +2298,11 @@
+     ac_pattern.length       = strlen(common_alpns[i]);
+ 
+     if(ac_automata_add(ndpi_str->common_alpns_automa.ac_automa, &ac_pattern) != ACERR_SUCCESS)
++#ifndef __KERNEL__
+       printf("%s(): unable to add %s\n", __FUNCTION__, common_alpns[i]);
++#else
++      {}
++#endif
+   }
+ }
  
