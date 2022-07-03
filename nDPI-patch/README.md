@@ -28,7 +28,7 @@ three scripts are in the `nDPI-patch/` directory.  You may find it helpful to go
 
 ### cndpi - Copy nDPI
 
-This script copies a file that needs to be patched from the nDPI submodule to the current directlry.  Use it like:
+This script copies a file that needs to be patched from the nDPI submodule to the current directory.  Use it like:
 
 ```
   cd nDPI-patch/src/lib
