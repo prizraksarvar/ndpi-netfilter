@@ -141,7 +141,8 @@ void _init(void)
 {
         int i;
 
-        for (i = 0; i < NDPI_LAST_NFPROTO; i++){
+	//        for (i = 0; i < NDPI_LAST_NFPROTO; i++){
+        for (i = 0; i < 254; i++){
                 ndpi_mt_opts[i].name = prot_short_str[i+1];
                 ndpi_mt_opts[i].has_arg = false;
                 ndpi_mt_opts[i].val = i+1;
