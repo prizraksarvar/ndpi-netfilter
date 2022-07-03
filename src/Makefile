@@ -17,7 +17,6 @@ xt_ndpi-y := main.o \
                 ${NDPI_SRC}/lib/ndpi_classify.o \
                 ${NDPI_SRC}/lib/ndpi_serializer.o \
                 ${NDPI_SRC}/lib/ahocorasick.o \
-                ${NDPI_SRC}/lib/ht_hash.o \
                 ${NDPI_SRC}/lib/libcache.o \
                 ${NDPI_SRC}/lib/libinjection_html5.o \
                 ${NDPI_SRC}/lib/libinjection_sqli.o \
@@ -25,9 +24,7 @@ xt_ndpi-y := main.o \
                 ${NDPI_SRC}/lib/ndpi_md5.o \
                 ${NDPI_SRC}/lib/ndpi_patricia.o \
                 ${NDPI_SRC}/lib/ndpi_sha1.o \
-                ${NDPI_SRC}/lib/node.o \
                 ${NDPI_SRC}/lib/sha1-fast.o \
-                ${NDPI_SRC}/lib/sort.o \
                 ${NDPI_SRC}/lib/strptime.o \
                 ${NDPI_PRO}/tls.o \
                 ${NDPI_PRO}/afp.o \
@@ -67,7 +64,6 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/eaq.o \
                 ${NDPI_PRO}/edonkey.o \
                 ${NDPI_PRO}/fasttrack.o \
-                ${NDPI_PRO}/fbzero.o \
                 ${NDPI_PRO}/fiesta.o \
                 ${NDPI_PRO}/fix.o \
                 ${NDPI_PRO}/florensia.o \
@@ -81,7 +77,6 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/halflife2_and_mods.o \
                 ${NDPI_PRO}/hangout.o \
                 ${NDPI_PRO}/http.o \
-                ${NDPI_PRO}/http_activesync.o \
                 ${NDPI_PRO}/iax.o \
                 ${NDPI_PRO}/icecast.o \
                 ${NDPI_PRO}/iec60870-5-104.o \
@@ -149,7 +144,6 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/socks45.o \
                 ${NDPI_PRO}/someip.o \
                 ${NDPI_PRO}/sopcast.o \
-                ${NDPI_PRO}/soulseek.o \
                 ${NDPI_PRO}/spotify.o \
                 ${NDPI_PRO}/ssdp.o \
                 ${NDPI_PRO}/ssh.o \
@@ -168,10 +162,8 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/tftp.o \
                 ${NDPI_PRO}/thunder.o \
                 ${NDPI_PRO}/tinc.o \
-                ${NDPI_PRO}/tor.o \
                 ${NDPI_PRO}/tvuplayer.o \
                 ${NDPI_PRO}/ubntac2.o \
-                ${NDPI_PRO}/upnp.o \
                 ${NDPI_PRO}/usenet.o \
                 ${NDPI_PRO}/vhua.o \
                 ${NDPI_PRO}/viber.o \
