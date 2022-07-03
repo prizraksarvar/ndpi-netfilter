@@ -13,6 +13,7 @@ obj-m := xt_ndpi.o
 xt_ndpi-y := main.o \
                 ${NDPI_SRC}/lib/ndpi_main.o \
                 ${NDPI_SRC}/lib/ndpi_community_id.o \
+                ${NDPI_SRC}/lib/ndpi_geoip.o \
                 ${NDPI_SRC}/lib/ndpi_utils.o \
                 ${NDPI_SRC}/lib/ndpi_classify.o \
                 ${NDPI_SRC}/lib/ndpi_serializer.o \
@@ -31,22 +32,26 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/aimini.o \
                 ${NDPI_PRO}/ajp.o \
                 ${NDPI_PRO}/amazon_video.o \
+                ${NDPI_PRO}/among_us.o \
                 ${NDPI_PRO}/amqp.o \
                 ${NDPI_PRO}/apple_push.o \
                 ${NDPI_PRO}/applejuice.o \
                 ${NDPI_PRO}/armagetron.o \
+                ${NDPI_PRO}/avast_securedns.o \
                 ${NDPI_PRO}/ayiya.o \
                 ${NDPI_PRO}/bgp.o \
                 ${NDPI_PRO}/bittorrent.o \
                 ${NDPI_PRO}/bjnp.o \
                 ${NDPI_PRO}/btlib.o \
                 ${NDPI_PRO}/capwap.o \
+                ${NDPI_PRO}/cassandra.o \
                 ${NDPI_PRO}/checkmk.o \
                 ${NDPI_PRO}/ciscovpn.o \
                 ${NDPI_PRO}/citrix.o \
                 ${NDPI_PRO}/coap.o \
                 ${NDPI_PRO}/collectd.o \
                 ${NDPI_PRO}/corba.o \
+                ${NDPI_PRO}/cpha.o \
                 ${NDPI_PRO}/crossfire.o \
                 ${NDPI_PRO}/csgo.o \
                 ${NDPI_PRO}/dcerpc.o \
@@ -69,6 +74,7 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/florensia.o \
                 ${NDPI_PRO}/ftp_control.o \
                 ${NDPI_PRO}/ftp_data.o \
+                ${NDPI_PRO}/genshin_impact.o \
                 ${NDPI_PRO}/git.o \
                 ${NDPI_PRO}/gnutella.o \
                 ${NDPI_PRO}/gtp.o \
@@ -76,6 +82,7 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/h323.o \
                 ${NDPI_PRO}/halflife2_and_mods.o \
                 ${NDPI_PRO}/hangout.o \
+                ${NDPI_PRO}/hpvirtgrp.o \
                 ${NDPI_PRO}/http.o \
                 ${NDPI_PRO}/iax.o \
                 ${NDPI_PRO}/icecast.o \
@@ -100,6 +107,7 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/mgcp.o \
                 ${NDPI_PRO}/mining.o \
                 ${NDPI_PRO}/modbus.o \
+                ${NDPI_PRO}/mongodb.o \
                 ${NDPI_PRO}/mpegts.o \
                 ${NDPI_PRO}/mqtt.o \
                 ${NDPI_PRO}/mssql_tds.o \
@@ -178,6 +186,7 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/world_of_warcraft.o \
                 ${NDPI_PRO}/xbox.o \
                 ${NDPI_PRO}/xdmcp.o \
+                ${NDPI_PRO}/z3950.o \
                 ${NDPI_PRO}/zabbix.o \
                 ${NDPI_PRO}/zattoo.o \
                 ${NDPI_PRO}/zeromq.o

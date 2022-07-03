@@ -1,0 +1,17 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_geoip.c	2022-06-30 09:34:28.862051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_geoip.c	2022-07-01 11:22:10.986306120 -0400
+@@ -20,12 +20,12 @@
+  * along with nDPI.  If not, see <http://www.gnu.org/licenses/>.
+  *
+  */
+-
++#ifndef __KERNEL__
+ #include <stdlib.h>
+ #include <errno.h>
+ #include <sys/types.h>
+ #include <stdint.h>
+-
++#endif
+ #include "ndpi_api.h"
+ #include "ndpi_config.h"
+ 
