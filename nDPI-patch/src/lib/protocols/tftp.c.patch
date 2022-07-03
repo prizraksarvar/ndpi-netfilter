@@ -1,0 +1,12 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/tftp.c	2022-06-30 09:34:28.886051275 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/tftp.c	2022-06-30 17:02:58.287557225 -0400
+@@ -67,7 +67,8 @@
+         {
+           char const * const possible_modes[] = { "netascii", "octet", "mail" };
+           uint8_t mode_found = 0;
+-          for (uint8_t mode_idx = 0; mode_idx < sizeof(possible_modes) / sizeof(possible_modes[0]); ++mode_idx)
++	  uint8_t mode_idx;
++          for (mode_idx = 0; mode_idx < sizeof(possible_modes) / sizeof(possible_modes[0]); ++mode_idx)
+           {
+             size_t const mode_len = strlen(possible_modes[mode_idx]);
+ 
