@@ -760,7 +760,8 @@ static int __init ndpi_mt_init(void)
 {
         int ret=-ENOMEM, i;
 
-	pr_info("xt_ndpi 3.0 (nDPI wrapper module).\n");
+	pr_info("xt_ndpi 4.2 (nDPI wrapper module).%s\n",
+		debug_dpi ? " Debugging enabled." : "");
 
 	/* init global detection structure
 	//NDPI_PROTOCOL_BITMASK all;
@@ -833,7 +834,7 @@ err_out:
 
 static void __exit ndpi_mt_exit(void)
 {
-	pr_info("xt_ndpi 3.0 unload.\n");
+	pr_info("xt_ndpi 4.2 unload.\n");
 
 	xt_unregister_match(&ndpi_mt_reg);
         ndpi_cleanup();
@@ -846,5 +847,6 @@ module_exit(ndpi_mt_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("G. Elian Gidoni (main code)");
 MODULE_AUTHOR("Humberto Juca <betolj@gmail.com>");
+MODULE_AUTHOR("Chris Nelson <Chris.Nelson.PE@gmail.com>");
 MODULE_DESCRIPTION("nDPI wrapper");
 MODULE_ALIAS("ipt_ndpi");
