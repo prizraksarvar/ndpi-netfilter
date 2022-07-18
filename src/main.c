@@ -621,6 +621,7 @@ static int __init ndpi_mt_init(void)
                                                      malloc_wrapper, free_wrapper, debug_printf);
         */
 	ndpi_struct = ndpi_init_detection_module(ndpi_no_prefs);
+	ndpi_finalize_initialization(ndpi_struct);
 
 	if (ndpi_struct == NULL) {
 		pr_err("xt_ndpi: global structure initialization failed.\n");
