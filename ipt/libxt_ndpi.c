@@ -39,14 +39,14 @@ static struct option ndpi_mt_opts[NDPI_LAST_NFPROTO+1];
 static void 
 ndpi_mt4_save(const void *entry, const struct xt_entry_match *match)
 {
-	const struct xt_ndpi_mtinfo *info = (const void *)match->data;
-        int i;
+    const struct xt_ndpi_mtinfo *info = (const void *)match->data;
+    int i;
 
-        for (i = 1; i < NDPI_LAST_NFPROTO; i++){
-                if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i) != 0){
-                        printf(" --%s ", prot_short_str[i]);
-                }
+    for (i = 1; i < NDPI_LAST_NFPROTO; i++){
+        if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i) != 0){
+            printf(" --%s %s", ndpi_mt_opts[0].name, prot_short_str[i]);
         }
+    }
 }
 
 
@@ -69,15 +69,19 @@ static int
 ndpi_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
                   const void *entry, struct xt_entry_match **match)
 {
-	struct xt_ndpi_mtinfo *info = (void *)(*match)->data;
+    struct xt_ndpi_mtinfo *info = (void *)(*match)->data;
 
-        if (c >= 0 && c < NDPI_LAST_NFPROTO) {
-                NDPI_ADD_PROTOCOL_TO_BITMASK(info->flags, c);
-                *flags = 1;
-                return true;
+    int i;
+    for (i = 1; i < NDPI_LAST_NFPROTO; ++i) {
+        if (strcmp(prot_short_str[i], argv[optind-1]) == 0) {
+            NDPI_ADD_PROTOCOL_TO_BITMASK(info->flags, i);
+            *flags = 1;
+            return true;
         }
-        *flags = 0;
-	return false;
+    }
+
+    *flags = 0;
+    return false;
 }
 
 #ifndef xtables_error
@@ -97,13 +101,16 @@ ndpi_mt_check (unsigned int flags)
 static void
 ndpi_mt_help(void)
 {
-        int i;
+    int i;
 
-	printf("ndpi match options:\n");
-        for (i = 1; i < NDPI_LAST_NFPROTO; i++){
-                printf("--%s Match for %s protocol packets.\n",
-                       prot_short_str[i], prot_long_str[i]);
-        }
+    printf("ndpi match options:\n");
+    printf("  --%s protoname [--%s protoname ...]\n",
+	   ndpi_mt_opts[0].name, ndpi_mt_opts[0].name);
+    printf("Where protoname is one of:\n");
+    for (i = 1; i < NDPI_LAST_NFPROTO; i++){
+        printf("'%s' to match for %s protocol packets.\n",
+               prot_short_str[i], prot_long_str[i]);
+    }
 }
 
 
@@ -139,18 +146,18 @@ ndpi_mt4_reg = {
 
 void _init(void)
 {
-        int i;
+    int i = 0;
 
-	//        for (i = 0; i < NDPI_LAST_NFPROTO; i++){
-        for (i = 0; i < 254; i++){
-                ndpi_mt_opts[i].name = prot_short_str[i+1];
-                ndpi_mt_opts[i].has_arg = false;
-                ndpi_mt_opts[i].val = i+1;
-        }
-        ndpi_mt_opts[i].name = NULL;
-        ndpi_mt_opts[i].flag = NULL;
-        ndpi_mt_opts[i].has_arg = 0;
-        ndpi_mt_opts[i].val = 0;
+    ndpi_mt_opts[i].name = "proto";
+    ndpi_mt_opts[i].has_arg = 1; // Required argument (the protocol name)
+    ndpi_mt_opts[i].flag = NULL;
+    ndpi_mt_opts[i].val = 'p';
+    i++;
+    
+    ndpi_mt_opts[i].name = NULL;
+    ndpi_mt_opts[i].has_arg = 0;
+    ndpi_mt_opts[i].flag = NULL;
+    ndpi_mt_opts[i].val = 0;
 
-	xtables_register_match(&ndpi_mt4_reg);
+    xtables_register_match(&ndpi_mt4_reg);
 }
