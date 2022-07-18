@@ -34,6 +34,7 @@
 static char *prot_long_str[] = { NDPI_PROTOCOL_LONG_STRING };
 static char *prot_short_str[] = { NDPI_PROTOCOL_SHORT_STRING };
 
+static struct option ndpi_mt_opts[NDPI_LAST_NFPROTO+1];
 
 static void 
 ndpi_mt4_save(const void *entry, const struct xt_entry_match *match)
@@ -114,7 +115,6 @@ ndpi_mt_init (struct xt_entry_match *match)
 }
 
 
-static struct option ndpi_mt_opts[NDPI_LAST_NFPROTO+1];
 
 static struct xtables_match
 ndpi_mt4_reg = {
