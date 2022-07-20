@@ -78,7 +78,6 @@ struct osdpi_flow_node {
 };
 
 u64 gc_interval_timeout = 0;
-static u32 size_flow_struct = 0;
 
 static struct rb_root osdpi_flow_root = RB_ROOT;
 
@@ -625,13 +624,11 @@ static int __init ndpi_mt_init(void)
 	NDPI_BITMASK_RESET(protocols_bitmask);
 	ndpi_set_protocol_detection_bitmask2(ndpi_struct, &protocols_bitmask);
 
-	/* allocate memory for flow tracking */
-        size_flow_struct = sizeof(struct ndpi_flow_struct);
-
-
+	// Each item allocated in the cache has room for an osdpi_flow_node
+	// followed by a ndpi_flow_struct.
         osdpi_flow_cache = kmem_cache_create("xt_ndpi_flows",
                                              sizeof(struct osdpi_flow_node) +
-                                             size_flow_struct,
+                                               sizeof(struct ndpi_flow_struct),
                                              0, 0, NULL);
 
         if (!osdpi_flow_cache){
