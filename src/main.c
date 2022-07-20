@@ -318,7 +318,6 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
         union nf_inet_addr *ipsrc, *ipdst;
         struct osdpi_flow_node *flow, *curflow;
 
-	u8 exist_flow=0;
         u64 t1;
         struct timespec64 tv;
 
@@ -377,7 +376,6 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
         }
         else {
 		/* Update timeouts */
-		exist_flow=1;
 		if (flow->detected_protocol.app_protocol) {
 			proto = flow->detected_protocol.app_protocol;
 			if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
