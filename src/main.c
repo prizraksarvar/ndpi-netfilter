@@ -522,7 +522,7 @@ ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par)
 	proto = ndpi_process_packet(ct, time, ip_hdr(skb_use), skb_use->len, tcph);
 	
 
-	if(linearized_skb != NULL)
+	if (linearized_skb != NULL)
 		kfree_skb(linearized_skb);
 
 	spin_lock_bh (&ipq_lock);
