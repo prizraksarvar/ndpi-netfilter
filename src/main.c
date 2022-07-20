@@ -338,12 +338,10 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 		spin_unlock_bh (&flow_lock);
 		return NDPI_PROTOCOL_IP_ICMP;
 	}
-	else {
-		if (nf_ct_is_dying(ct)) {
-			ndpi_kill_flow(ct, ipsrc, ipdst);
-			spin_unlock_bh (&flow_lock);
-			return proto;
-		}
+	else if (nf_ct_is_dying(ct)) {
+		ndpi_kill_flow(ct, ipsrc, ipdst);
+		spin_unlock_bh (&flow_lock);
+		return proto;
 	}
 
         ktime_get_real_ts64(&tv);
@@ -351,11 +349,9 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 
         if (flow == NULL) {
 		if (!gc_interval_timeout) gc_interval_timeout = t1;
-		else {
-			if (t1 - gc_interval_timeout > 59) {
-				ndpi_gc_flow();
-				gc_interval_timeout = t1;
-			}
+		else if (t1 - gc_interval_timeout > 59) {
+			ndpi_gc_flow();
+			gc_interval_timeout = t1;
 		}
 
 		flow = ndpi_alloc_flow(ct);
@@ -370,21 +366,19 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 			flow->detection_completed = 0;
                 }
         }
-        else {
-		/* Update timeouts */
-		if (flow->detected_protocol.app_protocol) {
-			proto = flow->detected_protocol.app_protocol;
-			if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
-				pr_info ("xt_ndpi: flow detected %s ( dst %pI4 )\n", prot_long_str[flow->detected_protocol.app_protocol], ipdst);
-			flow->ndpi_timeout = t1;
-			spin_unlock_bh (&flow_lock);
-			return proto;
-	        }
-	        else if (!flow->detected_protocol.app_protocol && (t1 - flow->ndpi_timeout > 30)) {
-			if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 expired\n", ipdst);
-			spin_unlock_bh (&flow_lock);
-			return NDPI_PROTOCOL_UNKNOWN;
-	        }
+        /* Update timeouts */
+        else if (flow->detected_protocol.app_protocol) {
+                proto = flow->detected_protocol.app_protocol;
+                if (debug_dpi && flow->detected_protocol.app_protocol <= NDPI_LAST_NFPROTO)
+                    pr_info ("xt_ndpi: flow detected %s ( dst %pI4 )\n", prot_long_str[flow->detected_protocol.app_protocol], ipdst);
+                flow->ndpi_timeout = t1;
+                spin_unlock_bh (&flow_lock);
+                return proto;
+        }
+        else if (!flow->detected_protocol.app_protocol && (t1 - flow->ndpi_timeout > 30)) {
+                if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 expired\n", ipdst);
+                spin_unlock_bh (&flow_lock);
+                return NDPI_PROTOCOL_UNKNOWN;
 	}
 
 	/* Invalid DPI flow */
@@ -423,17 +417,15 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 
 	        if (proto > NDPI_LAST_IMPLEMENTED_PROTOCOL)
 	                proto = NDPI_PROTOCOL_UNKNOWN;
-		else {
-		        if (flow->detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
-				/* update timeouts */
-				if (debug_dpi && proto <= NDPI_LAST_NFPROTO)
-					pr_info ("xt_ndpi: protocol detected %s ( dst %pI4 )\n", prot_long_str[proto], ipdst);
-				flow->ndpi_timeout = t1;
-				flow->detection_completed = 1;
+		else if (flow->detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
+			/* update timeouts */
+			if (debug_dpi && proto <= NDPI_LAST_NFPROTO)
+				pr_info ("xt_ndpi: protocol detected %s ( dst %pI4 )\n", prot_long_str[proto], ipdst);
+			flow->ndpi_timeout = t1;
+			flow->detection_completed = 1;
 
-				/* reset detection */
-				if (flow->ndpi_flow) memset(flow->ndpi_flow, 0, sizeof(*(flow->ndpi_flow)));
-		        }
+			/* reset detection */
+			if (flow->ndpi_flow) memset(flow->ndpi_flow, 0, sizeof(*(flow->ndpi_flow)));
 		}
 	}
 	kmem_cache_free (osdpi_flow_cache, curflow);
