@@ -392,8 +392,6 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 
 	/* Set current flow for temporary dump */
         curflow = kmem_cache_zalloc (osdpi_flow_cache, GFP_ATOMIC);
-        curflow->ndpi_flow = (struct ndpi_flow_struct *)
-                 ((char*)&curflow->ndpi_flow+sizeof(curflow->ndpi_flow));
         curflow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
         curflow->ndpi_flow = flow->ndpi_flow;
         spin_unlock_bh (&flow_lock);
