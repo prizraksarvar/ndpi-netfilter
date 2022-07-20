@@ -97,12 +97,10 @@ static struct ndpi_detection_module_struct *ndpi_struct = NULL;
 static u32 detection_tick_resolution = 1000;
 
 /* debug functions */
-
+/*
 static void debug_printf(u32 protocol, void *id_struct,
                          ndpi_log_level_t log_level, const char *format, ...)
 {
-        /* do nothing */
-
         va_list args;
         va_start(args, format);
         switch (log_level)
@@ -120,7 +118,7 @@ static void debug_printf(u32 protocol, void *id_struct,
         }
         va_end(args);
 }
-
+*/
 
 /*
 static void *malloc_wrapper(unsigned long size)
@@ -188,7 +186,6 @@ ndpi_alloc_flow (struct nf_conn * ct)
         struct osdpi_flow_node *flow;
 
 	flow = kmem_cache_zalloc (osdpi_flow_cache, GFP_ATOMIC);
-	//flow = kzalloc(sizeof(struct ndpi_flow_struct *) + size_flow_struct, GFP_KERNEL);
 
         if (flow == NULL) {
                 pr_err("xt_ndpi: couldn't allocate new flow.\n");
@@ -217,7 +214,6 @@ nfndpi_free_flow (struct nf_conn * ct, struct osdpi_flow_node * auxflow)
         if (flow != NULL){
                 rb_erase (&flow->node, &osdpi_flow_root);
 	        kmem_cache_free (osdpi_flow_cache, flow);
-                //kfree (flow);
         }
 }
 
