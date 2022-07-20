@@ -73,8 +73,8 @@ struct osdpi_flow_node {
         u8 detection_completed;
 	/* result only, not used for flow identification */
         ndpi_protocol detected_protocol;
-        /* last pointer assigned at run time */
-	struct ndpi_flow_struct *ndpi_flow;
+
+        struct ndpi_flow_struct ndpi_flow;
 };
 
 u64 gc_interval_timeout = 0;
@@ -192,8 +192,6 @@ ndpi_alloc_flow (struct nf_conn * ct)
         }
 	else {
 	        flow->ct = ct;
-	        flow->ndpi_flow = (struct ndpi_flow_struct *)
-	                ((char*)&flow->ndpi_flow+sizeof(flow->ndpi_flow));
 	        ndpi_flow_insert (&osdpi_flow_root, flow);
 	}
 
@@ -311,7 +309,7 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 {
 	u32 proto = NDPI_PROTOCOL_UNKNOWN;
         union nf_inet_addr *ipsrc, *ipdst;
-        struct osdpi_flow_node *flow, *curflow;
+        struct osdpi_flow_node *flow;
 
         u64 t1;
         struct timespec64 tv;
@@ -380,37 +378,26 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
                 return NDPI_PROTOCOL_UNKNOWN;
 	}
 
-	/* Invalid DPI flow */
-	if (flow->ndpi_flow == NULL) {
-		if (debug_dpi) pr_info ("xt_ndpi: dst %pI4 invalid\n", ipdst);
-		ndpi_kill_flow(ct, ipsrc, ipdst);
-		spin_unlock_bh (&flow_lock);
-		return proto;
-	}
 
 	flow->ndpi_timeout = t1;
 
-	/* Set current flow for temporary dump */
-        curflow = kmem_cache_zalloc (osdpi_flow_cache, GFP_ATOMIC);
-        curflow->detected_protocol.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-        curflow->ndpi_flow = flow->ndpi_flow;
         spin_unlock_bh (&flow_lock);
 
 
         /* here the actual detection is performed */
 	spin_lock_bh (&ipq_lock);
-	curflow->detected_protocol = ndpi_detection_process_packet(ndpi_struct,
-								   curflow->ndpi_flow,
-								   (uint8_t *) iph, ipsize,
-								   time);
+	ndpi_protocol detected_protocol = ndpi_detection_process_packet(ndpi_struct,
+							      &(flow->ndpi_flow),
+							      (uint8_t *) iph, ipsize,
+							      time);
 
 	spin_unlock_bh (&ipq_lock);
 
 	/* set detected protocol */
 	spin_lock_bh (&flow_lock);
 	if (flow != NULL) {
-		proto = curflow->detected_protocol.app_protocol;
-		flow->detected_protocol = curflow->detected_protocol;
+		proto = detected_protocol.app_protocol;
+		flow->detected_protocol = detected_protocol;
 
 	        if (proto >= NDPI_LAST_IMPLEMENTED_PROTOCOL)
 	                proto = NDPI_PROTOCOL_UNKNOWN;
@@ -422,10 +409,10 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 			flow->detection_completed = 1;
 
 			/* reset detection */
-			if (flow->ndpi_flow) memset(flow->ndpi_flow, 0, sizeof(*(flow->ndpi_flow)));
+			memset(&flow->ndpi_flow, 0, sizeof(flow->ndpi_flow));
 		}
 	}
-	kmem_cache_free (osdpi_flow_cache, curflow);
+
 	spin_unlock_bh (&flow_lock);
 
 	return proto;
@@ -625,8 +612,7 @@ static int __init ndpi_mt_init(void)
 	// Each item allocated in the cache has room for an osdpi_flow_node
 	// followed by a ndpi_flow_struct.
         osdpi_flow_cache = kmem_cache_create("xt_ndpi_flows",
-                                             sizeof(struct osdpi_flow_node) +
-                                               sizeof(struct ndpi_flow_struct),
+                                             sizeof(struct osdpi_flow_node),
                                              0, 0, NULL);
 
         if (!osdpi_flow_cache){
