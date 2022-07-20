@@ -415,7 +415,7 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 		proto = curflow->detected_protocol.app_protocol;
 		flow->detected_protocol = curflow->detected_protocol;
 
-	        if (proto > NDPI_LAST_IMPLEMENTED_PROTOCOL)
+	        if (proto >= NDPI_LAST_IMPLEMENTED_PROTOCOL)
 	                proto = NDPI_PROTOCOL_UNKNOWN;
 		else if (flow->detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
 			/* update timeouts */
