@@ -29,25 +29,27 @@
  
  #if defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__
  #include <sys/endian.h>
-@@ -214,6 +217,17 @@
+@@ -214,6 +217,19 @@
  }
  
  /* ****************************************** */
-+// TODO - some combination of snprintf() and %pI4/%pI6 may work here
 +const char * ndpi_inet_ntop(int af, void* src,
 +                             char* dst, size_t size)
 +{
-+  return NULL;
++  snprintf(dst, size, "%pI4", ((struct in_addr *)src)->s_addr);
++  return dst;
 +}
 +
 +char * ndpi_inet_ntoa(struct in_addr in) 
 +{
-+  return NULL;
++  char address_buf[16];
++
++  return ndpi_inet_ntop(AF_INET, &in, address_buf, sizeof(address_buf));
 +}
  
  /* Walk the nodes of a tree */
  static void ndpi_tdestroy_recurse(ndpi_node* root, void (*free_action)(void *))
-@@ -1153,6 +1167,7 @@
+@@ -1153,6 +1169,7 @@
  		  struct ndpi_flow_struct *flow,
  		  ndpi_protocol l7_protocol,
  		  ndpi_serializer *serializer) {
@@ -55,7 +57,7 @@
    char buf[64];
  
    if(flow == NULL) return(-1);
-@@ -1204,7 +1219,7 @@
+@@ -1204,7 +1221,7 @@
      ndpi_serialize_string_uint32(serializer, "query_type",  flow->protos.dns.query_type);
      ndpi_serialize_string_uint32(serializer, "rsp_type",    flow->protos.dns.rsp_type);
  
@@ -64,7 +66,7 @@
      ndpi_serialize_string_string(serializer, "rsp_addr",    buf);
      ndpi_serialize_end_of_block(serializer);
      break;
-@@ -1386,7 +1401,7 @@
+@@ -1386,7 +1403,7 @@
      }
      break;
    } /* switch */
@@ -73,7 +75,7 @@
    return(0);
  }
  
-@@ -1408,11 +1423,11 @@
+@@ -1408,11 +1425,11 @@
      return(-1);
  
    if(ip_version == 4) {
@@ -89,7 +91,7 @@
      /* For consistency across platforms replace :0: with :: */
      ndpi_patchIPv6Address(src_name), ndpi_patchIPv6Address(dst_name);
    }
-@@ -1533,8 +1548,8 @@
+@@ -1533,8 +1550,8 @@
  static void ndpi_compile_rce_regex() {
    const char *pcreErrorStr;
    int pcreErrorOffset;
@@ -100,7 +102,7 @@
      comp_rx[i] = (struct pcre_struct*)ndpi_malloc(sizeof(struct pcre_struct));
  
      comp_rx[i]->compiled = pcre_compile(rce_regex[i], 0, &pcreErrorStr,
-@@ -1559,7 +1574,7 @@
+@@ -1559,7 +1576,7 @@
  #endif
    }
  
@@ -109,7 +111,7 @@
  }
  
  static int ndpi_is_rce_injection(char* query) {
-@@ -1570,8 +1585,8 @@
+@@ -1570,8 +1587,8 @@
  
    int pcreExecRet;
    int subStrVec[30];
@@ -120,7 +122,7 @@
      unsigned int length = strlen(query);
  
      pcreExecRet = pcre_exec(comp_rx[i]->compiled,
-@@ -1634,7 +1649,7 @@
+@@ -1634,7 +1651,7 @@
  /* ********************************** */
  
  ndpi_risk_enum ndpi_validate_url(char *url) {
@@ -129,7 +131,7 @@
    ndpi_risk_enum rc = NDPI_NO_RISK;
  
    if(question_mark) {
-@@ -1644,7 +1659,8 @@
+@@ -1644,7 +1661,8 @@
  
      if(!str) goto validate_rc;
  
@@ -139,7 +141,7 @@
  
      while(str != NULL) {
        char *value = strchr(str, '=');
-@@ -1684,7 +1700,7 @@
+@@ -1684,7 +1702,7 @@
  	  break;
        }
  
@@ -148,7 +150,7 @@
      }
    }
  
-@@ -2195,8 +2211,8 @@
+@@ -2195,8 +2213,8 @@
  
  int ndpi_is_printable_string(char * const str, size_t len) {
    int retval = 1;
@@ -159,7 +161,7 @@
      if (ndpi_isprint(str[i]) == 0) {
        str[i] = '?';
        retval = 0;
-@@ -2207,7 +2223,7 @@
+@@ -2207,7 +2225,7 @@
  }
  
  /* ******************************************************************** */
@@ -168,7 +170,7 @@
  float ndpi_entropy(u_int8_t const * const buf, size_t len) {
    float entropy = 0.0f;
    u_int32_t byte_counters[256];
-@@ -2226,9 +2242,9 @@
+@@ -2226,9 +2244,9 @@
      float const p = (float)byte_counters[i] / len;
      entropy += p * log2f(1 / p);
    }
@@ -179,7 +181,7 @@
  
  /* ******************************************* */
  
-@@ -2282,7 +2298,11 @@
+@@ -2282,7 +2300,11 @@
      ac_pattern.length       = strlen(common_alpns[i]);
  
      if(ac_automata_add(ndpi_str->common_alpns_automa.ac_automa, &ac_pattern) != ACERR_SUCCESS)
