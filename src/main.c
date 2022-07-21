@@ -595,6 +595,10 @@ static int __init ndpi_mt_init(void)
                 goto err_out;
 	}
 
+	/* disable all protocols */
+	NDPI_BITMASK_RESET(protocols_bitmask);
+	ndpi_set_protocol_detection_bitmask2(ndpi_struct, &protocols_bitmask);
+
 	ndpi_finalize_initialization(ndpi_struct);
 
         for (i = 0; i < NDPI_LAST_IMPLEMENTED_PROTOCOL; i++){
@@ -604,10 +608,6 @@ static int __init ndpi_mt_init(void)
                 if ((i > 118 && i < 127) || (i > 139 && i < 146) || (i > 175 && i <= 218 ) || i == 70 || i == 133) nfndpi_protocols_http[i]=1;
                 else nfndpi_protocols_http[i]=0;
         }
-
-	/* disable all protocols */
-	NDPI_BITMASK_RESET(protocols_bitmask);
-	ndpi_set_protocol_detection_bitmask2(ndpi_struct, &protocols_bitmask);
 
 	// Each item allocated in the cache has room for an osdpi_flow_node
 	// followed by a ndpi_flow_struct.
