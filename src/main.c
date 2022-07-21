@@ -654,6 +654,6 @@ module_exit(ndpi_mt_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("G. Elian Gidoni (main code)");
 MODULE_AUTHOR("Humberto Juca <betolj@gmail.com>");
-MODULE_AUTHOR("Chris Nelson <Chris.Nelson.PE@gmail.com>");
+MODULE_AUTHOR("Chris Nelson (Ubuntu 20.04 port) <Chris.Nelson.PE@gmail.com>");
 MODULE_DESCRIPTION("nDPI wrapper");
 MODULE_ALIAS("ipt_ndpi");
