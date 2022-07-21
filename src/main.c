@@ -48,9 +48,6 @@
 static int debug_dpi = 0;
 module_param(debug_dpi, int, 0);
 MODULE_PARM_DESC(debug_dpi, "Enable syslog debug");
-static int skip_gc = 0;
-module_param(skip_gc, int, 0);
-MODULE_PARM_DESC(skip_gc, "Skip garbage collection. TEMP");
 
 static char *prot_long_str[] = { NDPI_PROTOCOL_LONG_STRING };
 
@@ -285,10 +282,6 @@ static void ndpi_gc_flow(void)
 
         u64 t1;
         struct timespec64 tv;
-
-	if (skip_gc) {
-	  return;
-	}
 
         ktime_get_real_ts64(&tv);
         t1 = (uint64_t) tv.tv_sec;
