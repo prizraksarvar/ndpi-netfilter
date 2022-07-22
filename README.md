@@ -87,13 +87,8 @@ Some run-time tracing can be enabled with the `debug_dpi` parameter:
 Connection tracking must be turned on in iptables with a command like:
 
 ```
-  sudo iptables -t mangle -A PREROUTING -m conntrack --ctstate INVALID -j DROP 
-```
-
-or
-
-```
-  sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+  sudo iptables -t mangle -A PREROUTING -j CONNMARK --restore-mark
+  sudo iptables -t mangle -A POSTROUTING -j CONNMARK --save-mark
 ```
 
 # Testing
