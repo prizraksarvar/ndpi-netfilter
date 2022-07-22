@@ -99,10 +99,14 @@ You can see the protocols supported by this module with:
   iptables -m ndpi --help
 ```
 
-You can see if the DHCP dissector is working by creating a rule:
+You can see if the module is loaded and basically working by creating
+a rule for `ICMP` (This doesn't exercise much of the module because
+there is special-case code for handling `ICMP`.)
+
 ```
   iptables -t mangle -A PREROUTING -m ndpi --icmp -j ACCEPT
 ```
+
 Then pinging a remote system:
 ```
   ping google.com
