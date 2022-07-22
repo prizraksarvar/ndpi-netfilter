@@ -118,7 +118,6 @@ static void
 ndpi_mt_init (struct xt_entry_match *match)
 {
 	struct xt_ndpi_mtinfo *info = (void *)match->data;
-	/* inet_pton(PF_INET, "192.0.2.137", &info->dst.in); */
 }
 
 
