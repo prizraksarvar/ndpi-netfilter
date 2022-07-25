@@ -37,7 +37,7 @@ This script copies a file that needs to be patched from the nDPI submodule to th
 
 ### pndpi - Prepare a patch file
 
-This script created a `.patch` file for a nDPI source file.  Use it like:
+This script creates a `.patch` file for a nDPI source file.  Use it like:
 
 ```
   pndpi ndpi_main.c
@@ -66,6 +66,24 @@ To make additional changes for a file that already has a patch, use it like:
 ```
 
 Then edit the file (e.g., `ndpi_main.c`) to address build issues and then use `pndip` to update the patch file before checking it it to the repository.
+
+### wndpi - Find where a missing entry point is called ###
+
+Sometimes the build fails because an unresolved external reference during linking:
+
+ ERROR: "ndpi_check_subprotocol_risk" [/home/chrisn/src/ndpi-netfilter/src/xt_ndpi.ko] undefined!
+
+This script can find all the object that reference the missing symbol.  Use it like:
+```
+  wndpi ndpi_check_subprotocol_risk
+```
+
+The output lists the objects which reference the symbol.  You will need to patch the `.c` files for the `.o` files it finds.
+
+  chrisn@cln-bwm:~/src/ndpi-netfilter$ wndpi ndpi_check_subprotocol_risk
+  ./nDPI/src/lib/protocols/tls.o
+  ./src/xt_ndpi.o
+  ./src/ndpi_cpy/lib/protocols/tls.o
 
 ### Example
 
