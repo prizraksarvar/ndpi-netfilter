@@ -1,5 +1,5 @@
 --- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_utils.c	2022-06-30 09:34:28.866051274 -0400
-+++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_utils.c	2022-07-01 15:57:47.823000804 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_utils.c	2022-07-25 10:28:01.718152992 -0400
 @@ -21,12 +21,12 @@
   *
   */
@@ -150,7 +150,48 @@
      }
    }
  
-@@ -2195,8 +2213,8 @@
+@@ -1885,40 +1903,6 @@
+ 
+   *client_score = *server_score = 0; /* Reset values */
+ 
+-  if(risk == 0) return(0);
+-
+-  for(i = 0; i < NDPI_MAX_RISK; i++) {
+-    ndpi_risk_enum r = (ndpi_risk_enum)i;
+-
+-    if(NDPI_ISSET_BIT(risk, r)) {
+-      ndpi_risk_info *info = ndpi_risk2severity(r);
+-      u_int16_t val = 0, client_score_val;
+-
+-      switch(info->severity) {
+-      case NDPI_RISK_LOW:
+-	val = NDPI_SCORE_RISK_LOW;
+-	break;
+-
+-      case NDPI_RISK_MEDIUM:
+-	val = NDPI_SCORE_RISK_MEDIUM;
+-	break;
+-
+-      case NDPI_RISK_HIGH:
+-	val = NDPI_SCORE_RISK_HIGH;
+-	break;
+-
+-      case NDPI_RISK_SEVERE:
+-	val = NDPI_SCORE_RISK_SEVERE;
+-	break;
+-      }
+-
+-      score += val;
+-      client_score_val = (val * info->default_client_risk_pctg) / 100;
+-
+-      *client_score += client_score_val, *server_score += (val - client_score_val);
+-    }
+-  }
+-
+   return(score);
+ }
+ 
+@@ -2195,8 +2179,8 @@
  
  int ndpi_is_printable_string(char * const str, size_t len) {
    int retval = 1;
@@ -161,7 +202,7 @@
      if (ndpi_isprint(str[i]) == 0) {
        str[i] = '?';
        retval = 0;
-@@ -2207,7 +2225,7 @@
+@@ -2207,7 +2191,7 @@
  }
  
  /* ******************************************************************** */
@@ -170,7 +211,7 @@
  float ndpi_entropy(u_int8_t const * const buf, size_t len) {
    float entropy = 0.0f;
    u_int32_t byte_counters[256];
-@@ -2226,9 +2244,9 @@
+@@ -2226,9 +2210,9 @@
      float const p = (float)byte_counters[i] / len;
      entropy += p * log2f(1 / p);
    }
@@ -181,7 +222,7 @@
  
  /* ******************************************* */
  
-@@ -2282,7 +2300,11 @@
+@@ -2282,7 +2266,11 @@
      ac_pattern.length       = strlen(common_alpns[i]);
  
      if(ac_automata_add(ndpi_str->common_alpns_automa.ac_automa, &ac_pattern) != ACERR_SUCCESS)

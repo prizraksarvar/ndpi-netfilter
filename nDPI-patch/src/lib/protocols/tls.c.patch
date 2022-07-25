@@ -1,5 +1,5 @@
 --- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/tls.c	2022-06-30 09:34:28.886051275 -0400
-+++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2022-07-01 13:21:50.358607713 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2022-07-25 10:52:36.611034826 -0400
 @@ -27,6 +27,43 @@
  #include "ndpi_sha1.h"
  #include "ndpi_encryption.h"
@@ -44,7 +44,15 @@
  extern char *strptime(const char *s, const char *format, struct tm *tm);
  extern int processClientServerHello(struct ndpi_detection_module_struct *ndpi_struct,
  				    struct ndpi_flow_struct *flow, uint32_t quic_version);
-@@ -418,7 +455,7 @@
+@@ -305,7 +342,6 @@
+ 
+ 	ndpi_set_detected_protocol(ndpi_struct, flow, cached_proto, NDPI_PROTOCOL_TLS, NDPI_CONFIDENCE_DPI_CACHE);
+ 	flow->category = ndpi_get_proto_category(ndpi_struct, ret);
+-	ndpi_check_subprotocol_risk(ndpi_struct, flow, cached_proto);
+       }
+     }
+   }
+@@ -418,7 +454,7 @@
  
  	if(len < (sizeof(utcDate)-1)) {
  	  struct tm utc;
@@ -53,7 +61,7 @@
  
  	  strncpy(utcDate, (const char*)&packet->payload[i+4], len);
  	  utcDate[len] = '\0';
-@@ -452,7 +489,7 @@
+@@ -452,7 +488,7 @@
  
  	    if(len < (sizeof(utcDate)-1)) {
  	      struct tm utc;
@@ -62,7 +70,7 @@
  
  	      strncpy(utcDate, (const char*)&packet->payload[offset], len);
  	      utcDate[len] = '\0';
-@@ -534,7 +571,7 @@
+@@ -534,7 +570,7 @@
  			       packet->payload[i+2] & 0xFF,
  			       packet->payload[i+3] & 0xFF);
  		    } else if(len == 16 /* IPv6 */){
@@ -71,7 +79,15 @@
  		    } else {
  		      /* Is that possibile? Better safe than sorry */
  		      dNSName[0] = '\0';
-@@ -1236,7 +1273,8 @@
+@@ -639,7 +675,6 @@
+ 
+ 	ndpi_set_detected_protocol(ndpi_struct, flow, proto_id, NDPI_PROTOCOL_TLS, NDPI_CONFIDENCE_DPI);
+ 	flow->category = ndpi_get_proto_category(ndpi_struct, ret);
+-	ndpi_check_subprotocol_risk(ndpi_struct, flow, proto_id);
+ 
+ 	if(ndpi_struct->tls_cert_cache == NULL)
+ 	  ndpi_struct->tls_cert_cache = ndpi_lru_cache_init(1024);
+@@ -1236,7 +1271,8 @@
    if(extension_id > 59 && extension_id != 65281)
    {
      u_int8_t extension_found = 0;
