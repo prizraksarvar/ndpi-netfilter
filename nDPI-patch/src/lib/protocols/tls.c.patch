@@ -1,5 +1,5 @@
 --- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/tls.c	2022-06-30 09:34:28.886051275 -0400
-+++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2022-07-25 10:52:36.611034826 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2022-07-26 10:50:42.545106251 -0400
 @@ -27,6 +27,43 @@
  #include "ndpi_sha1.h"
  #include "ndpi_encryption.h"
@@ -20,7 +20,7 @@
 +    return era * 146097 + doe - 719468;
 +}
 +
-+static time_t timegm(struct tm* t)
++static u_int32_t timegm(struct tm* t)
 +{
 +    int year = t->tm_year + 1900;
 +    int month = t->tm_mon;          // 0-11
