@@ -1,0 +1,13 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/mongodb.c	2022-06-30 09:34:28.878051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/mongodb.c	2022-07-01 13:39:16.610651664 -0400
+@@ -26,6 +26,10 @@
+ 
+ #include "ndpi_api.h"
+ 
++#ifdef __KERNEL__
++#include "ndpi_define.h"
++#endif
++
+ enum mongo_opcodes
+   {
+     OP_REPLY = 1,

@@ -1,0 +1,13 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/avast_securedns.c	2022-06-30 09:34:28.870051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/avast_securedns.c	2022-07-01 10:28:28.630170754 -0400
+@@ -21,8 +21,9 @@
+ #include "ndpi_protocol_ids.h"
+ 
+ #define NDPI_CURRENT_PROTO NDPI_PROTOCOL_AVAST_SECUREDNS
+-
++#ifndef __KERNEL__
+ #include <stdlib.h>
++#endif
+ #include "ndpi_api.h"
+ 
+ static void ndpi_int_avast_securedns_add_connection(struct ndpi_detection_module_struct *ndpi_struct,

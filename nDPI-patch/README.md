@@ -20,7 +20,7 @@ code to the kernel environment.
 ## Scripts
 
 Several scripts are provided to aid in patching the nDPI source.  All
-three scripts are in the `nDPI-patch/` directory.  You may find it helpful to go there and do
+of the scripts are in the `nDPI-patch/` directory.  You may find it helpful to go there and do
 
 ```
   export PATH=$PATH:`pwd`
@@ -28,19 +28,19 @@ three scripts are in the `nDPI-patch/` directory.  You may find it helpful to go
 
 ### cndpi - Copy nDPI
 
-This script copies a file that needs to be patched from the nDPI submodule to the current directlry.  Use it like:
+This script copies a file that needs to be patched from the nDPI submodule to the current directory.  Use it like:
 
 ```
   cd nDPI-patch/src/lib
-  ../../cndpi ndpi_main.c
+  cndpi ndpi_main.c
 ```
 
 ### pndpi - Prepare a patch file
 
-This script created a `.patch` file for a nDPI source file.  Use it like:
+This script creates a `.patch` file for a nDPI source file.  Use it like:
 
 ```
-  ../../pndpi ndpi_main.c
+  pndpi ndpi_main.c
 ```
 
 then check in the patch file (e.g., `ndpi_main.c.patch`).
@@ -54,7 +54,7 @@ lines away from the original patch.
 To remove the warnings in the build output from minor line number changes, use it like:
 
 ```
-  ../../rndpi ndpi_main.c
+  rndpi ndpi_main.c
 ```
 
 then check in the modified patch file.
@@ -62,10 +62,28 @@ then check in the modified patch file.
 To make additional changes for a file that already has a patch, use it like:
 
 ```
-  ../../rndpi ndpi_main.c
+  rndpi ndpi_main.c
 ```
 
 Then edit the file (e.g., `ndpi_main.c`) to address build issues and then use `pndip` to update the patch file before checking it it to the repository.
+
+### wndpi - Find where a missing entry point is called ###
+
+Sometimes the build fails because an unresolved external reference during linking:
+
+ ERROR: "ndpi_check_subprotocol_risk" [/home/chrisn/src/ndpi-netfilter/src/xt_ndpi.ko] undefined!
+
+This script can find all the object that reference the missing symbol.  Use it like:
+```
+  wndpi ndpi_check_subprotocol_risk
+```
+
+The output lists the objects which reference the symbol.  You will need to patch the `.c` files for the `.o` files it finds.
+
+  chrisn@cln-bwm:~/src/ndpi-netfilter$ wndpi ndpi_check_subprotocol_risk
+  ./nDPI/src/lib/protocols/tls.o
+  ./src/xt_ndpi.o
+  ./src/ndpi_cpy/lib/protocols/tls.o
 
 ### Example
 

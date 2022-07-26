@@ -1,5 +1,5 @@
---- ../../../nDPI/src/lib/ndpi_classify.c	2021-06-29 15:18:26.048077492 +0000
-+++ ./ndpi_classify.c	2021-06-29 19:31:51.452078676 +0000
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_classify.c	2022-06-30 09:34:28.858051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_classify.c	2022-06-30 14:22:23.350776945 -0400
 @@ -43,12 +43,14 @@
  
  #define _GNU_SOURCE
@@ -32,18 +32,17 @@
  /* *********************************************************************
   * ---------------------------------------------------------------------
   *                      Time functions
-@@ -682,13 +685,14 @@
- ndpi_log_timestamp(char *log_ts, uint32_t log_ts_len)
- {
-   pkt_timeval tv;
-+#if 0
+@@ -685,7 +688,7 @@
    time_t nowtime;
    struct tm nowtm_r;
    char tmbuf[NDPI_TIMESTAMP_LEN];
 -
++#if 0
    gettimeofday(&tv, NULL);
    nowtime = tv.tv_sec;
-   localtime_r(&nowtime, &nowtm_r);
+ #ifdef WIN32
+@@ -697,4 +700,5 @@
+ #endif
    strftime(tmbuf, NDPI_TIMESTAMP_LEN, "%H:%M:%S", &nowtm_r);
    snprintf(log_ts, log_ts_len, "%s.%06ld", tmbuf, (long)tv.tv_usec);
 +#endif

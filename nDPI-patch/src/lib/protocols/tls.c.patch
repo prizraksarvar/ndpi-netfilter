@@ -1,8 +1,8 @@
---- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/protocols/tls.c	2021-07-19 13:47:49.176005951 +0000
-+++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2021-07-19 15:26:20.240254265 +0000
-@@ -29,6 +29,44 @@
- #include "ndpi_md5.h"
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/tls.c	2022-06-30 09:34:28.886051275 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/tls.c	2022-07-25 10:52:36.611034826 -0400
+@@ -27,6 +27,43 @@
  #include "ndpi_sha1.h"
+ #include "ndpi_encryption.h"
  
 +#ifndef MIN
 +#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
@@ -20,8 +20,7 @@
 +    return era * 146097 + doe - 719468;
 +}
 +
-+// Not y2038 safe but notBefore and notAfter are both this type.
-+static u_int32_t timegm(struct tm* t)
++static time_t timegm(struct tm* t)
 +{
 +    int year = t->tm_year + 1900;
 +    int month = t->tm_mon;          // 0-11
@@ -45,7 +44,15 @@
  extern char *strptime(const char *s, const char *format, struct tm *tm);
  extern int processClientServerHello(struct ndpi_detection_module_struct *ndpi_struct,
  				    struct ndpi_flow_struct *flow, uint32_t quic_version);
-@@ -342,7 +380,7 @@
+@@ -305,7 +342,6 @@
+ 
+ 	ndpi_set_detected_protocol(ndpi_struct, flow, cached_proto, NDPI_PROTOCOL_TLS, NDPI_CONFIDENCE_DPI_CACHE);
+ 	flow->category = ndpi_get_proto_category(ndpi_struct, ret);
+-	ndpi_check_subprotocol_risk(ndpi_struct, flow, cached_proto);
+       }
+     }
+   }
+@@ -418,7 +454,7 @@
  
  	if(len < (sizeof(utcDate)-1)) {
  	  struct tm utc;
@@ -54,7 +61,7 @@
  
  	  strncpy(utcDate, (const char*)&packet->payload[i+4], len);
  	  utcDate[len] = '\0';
-@@ -376,7 +414,7 @@
+@@ -452,7 +488,7 @@
  
  	    if(len < (sizeof(utcDate)-1)) {
  	      struct tm utc;
@@ -63,3 +70,30 @@
  
  	      strncpy(utcDate, (const char*)&packet->payload[offset], len);
  	      utcDate[len] = '\0';
+@@ -534,7 +570,7 @@
+ 			       packet->payload[i+2] & 0xFF,
+ 			       packet->payload[i+3] & 0xFF);
+ 		    } else if(len == 16 /* IPv6 */){
+-		      inet_ntop(AF_INET6, &packet->payload[i], dNSName, sizeof(dNSName));
++		      ndpi_inet_ntop(AF_INET6, &packet->payload[i], dNSName, sizeof(dNSName));
+ 		    } else {
+ 		      /* Is that possibile? Better safe than sorry */
+ 		      dNSName[0] = '\0';
+@@ -639,7 +675,6 @@
+ 
+ 	ndpi_set_detected_protocol(ndpi_struct, flow, proto_id, NDPI_PROTOCOL_TLS, NDPI_CONFIDENCE_DPI);
+ 	flow->category = ndpi_get_proto_category(ndpi_struct, ret);
+-	ndpi_check_subprotocol_risk(ndpi_struct, flow, proto_id);
+ 
+ 	if(ndpi_struct->tls_cert_cache == NULL)
+ 	  ndpi_struct->tls_cert_cache = ndpi_lru_cache_init(1024);
+@@ -1236,7 +1271,8 @@
+   if(extension_id > 59 && extension_id != 65281)
+   {
+     u_int8_t extension_found = 0;
+-    for (size_t i = 0; i < allowed_non_iana_extensions_size; ++i)
++    size_t i;
++    for (i = 0; i < allowed_non_iana_extensions_size; ++i)
+     {
+       if(allowed_non_iana_extensions[i] == extension_id)
+       {

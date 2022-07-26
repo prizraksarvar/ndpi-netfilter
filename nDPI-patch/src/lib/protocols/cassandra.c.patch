@@ -1,0 +1,15 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/cassandra.c	2022-06-30 09:34:28.870051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/cassandra.c	2022-07-01 13:38:14.198649042 -0400
+@@ -19,8 +19,11 @@
+  * You should have received a copy of the GNU Lesser General Public License
+  * along with nDPI.  If not, see <http://www.gnu.org/licenses/>.
+  */
+-
++#ifndef __KERNEL__
+ #include <stdbool.h>
++#else
++#include "ndpi_define.h"
++#endif
+ #include "ndpi_protocol_ids.h"
+ #define NDPI_CURRENT_PROTO NDPI_PROTOCOL_CASSANDRA
+ #include "ndpi_api.h"
