@@ -1,4 +1,4 @@
---- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2022-07-22 16:11:18.415273465 -0400
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2022-07-26 17:01:48.392842395 -0400
 +++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2022-07-25 10:59:27.871051744 -0400
 @@ -21,10 +21,6 @@
   *
@@ -439,7 +439,7 @@
        if(flow) {
  	/* Run some basic consistency tests */
  
--	if(packet->payload_packet_len < sizeof(struct ndpi_icomphdr))
+-	if(packet->payload_packet_len < sizeof(struct ndpi_icmphdr))
 -	  ndpi_set_risk(ndpi_str, flow, NDPI_MALFORMED_PACKET);
 -	else {
 +	if(packet->payload_packet_len >= sizeof(struct ndpi_icmphdr)){
