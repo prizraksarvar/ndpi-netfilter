@@ -51,6 +51,18 @@ MODULE_PARM_DESC(debug_dpi, "Enable syslog debug");
 
 static char *prot_long_str[] = { NDPI_PROTOCOL_LONG_STRING };
 
+// Try to verify that this project has the same number of protocols as nDPI.
+//
+// Typically this will fail when nDPI added protocols.  When that happens,
+// add the new protocols to:
+// * NDPI_PROTOCOL_LONG_STRING and NDPI_PROTOCOL_SHORT_STRING in xt_ndpi.h
+// * The list of protocol objects for xt_ndpi-y in Makefile
+//
+// (Both xt_ndpi.h and Makefile are in the same directory as this file.)
+_Static_assert(sizeof(prot_long_str)/sizeof(char*)
+	       == NDPI_LAST_IMPLEMENTED_PROTOCOL,
+	       "nDPI and ndpi-netfilter protocol counts do not match.");
+
 
 /* flow tracking */
 struct osdpi_flow_node {

@@ -1,0 +1,509 @@
+--- ../../../../../nDPI/src/lib/third_party/src/libinjection_sqli.c	2021-06-29 15:18:26.064077493 +0000
++++ ./libinjection_sqli.c	2021-07-07 20:31:21.641085205 +0000
+@@ -7,12 +7,16 @@
+  *
+  */
+ 
++#ifndef __KERNEL__
+ #include <string.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <ctype.h>
+ #include <assert.h>
+ #include <stddef.h>
++#else
++#define assert(x)
++#endif
+ 
+ #include "libinjection.h"
+ #include "libinjection_sqli.h"
+@@ -359,7 +363,7 @@
+     const char *cs = sf->s;
+     size_t pos = sf->pos;
+ 
+-    st_assign_char(sf->current, TYPE_OPERATOR, pos, 1, cs[pos]);
++    st_assign_char(sf->cur, TYPE_OPERATOR, pos, 1, cs[pos]);
+     return pos + 1;
+ }
+ 
+@@ -368,7 +372,7 @@
+     const char *cs = sf->s;
+     size_t pos = sf->pos;
+ 
+-    st_assign_char(sf->current, TYPE_UNKNOWN, pos, 1, cs[pos]);
++    st_assign_char(sf->cur, TYPE_UNKNOWN, pos, 1, cs[pos]);
+     return pos + 1;
+ }
+ 
+@@ -377,7 +381,7 @@
+     const char *cs = sf->s;
+     size_t pos = sf->pos;
+ 
+-    st_assign_char(sf->current, cs[pos], pos, 1, cs[pos]);
++    st_assign_char(sf->cur, cs[pos], pos, 1, cs[pos]);
+     return pos + 1;
+ }
+ 
+@@ -390,10 +394,10 @@
+     const char *endpos =
+         (const char *) memchr((const void *) (cs + pos), '\n', slen - pos);
+     if (endpos == NULL) {
+-        st_assign(sf->current, TYPE_COMMENT, pos, slen - pos, cs + pos);
++        st_assign(sf->cur, TYPE_COMMENT, pos, slen - pos, cs + pos);
+         return slen;
+     } else {
+-        st_assign(sf->current, TYPE_COMMENT, pos, (size_t)(endpos - cs) - pos, cs + pos);
++        st_assign(sf->cur, TYPE_COMMENT, pos, (size_t)(endpos - cs) - pos, cs + pos);
+         return (size_t)((endpos - cs) + 1);
+     }
+ }
+@@ -408,7 +412,7 @@
+         sf->stats_comment_hash += 1;
+         return parse_eol_comment(sf);
+     } else {
+-        st_assign_char(sf->current, TYPE_OPERATOR, sf->pos, 1, '#');
++        st_assign_char(sf->cur, TYPE_OPERATOR, sf->pos, 1, '#');
+         return sf->pos + 1;
+     }
+ }
+@@ -439,7 +443,7 @@
+         sf->stats_comment_ddx += 1;
+         return parse_eol_comment(sf);
+     } else {
+-        st_assign_char(sf->current, TYPE_OPERATOR, pos, 1, '-');
++        st_assign_char(sf->cur, TYPE_OPERATOR, pos, 1, '-');
+         return pos + 1;
+     }
+ }
+@@ -531,7 +535,7 @@
+         ctype = TYPE_EVIL;
+     }
+ 
+-    st_assign(sf->current, ctype, pos, clen, cs + pos);
++    st_assign(sf->cur, ctype, pos, clen, cs + pos);
+     return pos + clen;
+ }
+ 
+@@ -546,10 +550,10 @@
+      * Weird MySQL alias for NULL, "\N" (capital N only)
+      */
+     if (pos + 1 < slen && cs[pos +1] == 'N') {
+-        st_assign(sf->current, TYPE_NUMBER, pos, 2, cs + pos);
++        st_assign(sf->cur, TYPE_NUMBER, pos, 2, cs + pos);
+         return pos + 2;
+     } else {
+-        st_assign_char(sf->current, TYPE_BACKSLASH, pos, 1, cs[pos]);
++        st_assign_char(sf->cur, TYPE_BACKSLASH, pos, 1, cs[pos]);
+         return pos + 1;
+     }
+ }
+@@ -572,13 +576,13 @@
+         /*
+          * special 3-char operator
+          */
+-        st_assign(sf->current, TYPE_OPERATOR, pos, 3, cs + pos);
++        st_assign(sf->cur, TYPE_OPERATOR, pos, 3, cs + pos);
+         return pos + 3;
+     }
+ 
+     ch = sf->lookup(sf, LOOKUP_OPERATOR, cs + pos, 2);
+     if (ch != CHAR_NULL) {
+-        st_assign(sf->current, ch, pos, 2, cs+pos);
++        st_assign(sf->cur, ch, pos, 2, cs+pos);
+         return pos + 2;
+     }
+ 
+@@ -589,7 +593,7 @@
+ 
+     if (cs[pos] == ':') {
+         /* ':' is not an operator */
+-        st_assign(sf->current, TYPE_COLON, pos, 1, cs+pos);
++        st_assign(sf->cur, TYPE_COLON, pos, 1, cs+pos);
+         return pos + 1;
+     } else {
+         /*
+@@ -698,7 +702,7 @@
+     /*
+      * assert cs[pos] == single or double quote
+      */
+-    return parse_string_core(cs, slen, pos, sf->current, cs[pos], 1);
++    return parse_string_core(cs, slen, pos, sf->cur, cs[pos], 1);
+ }
+ 
+ /**
+@@ -715,7 +719,7 @@
+     if (pos + 2 >= slen || cs[pos+1] != CHAR_SINGLE) {
+         return parse_word(sf);
+     }
+-    return parse_string_core(cs, slen, pos, sf->current, CHAR_SINGLE, 2);
++    return parse_string_core(cs, slen, pos, sf->cur, CHAR_SINGLE, 2);
+ }
+ 
+ static size_t parse_ustring(struct libinjection_sqli_state * sf)
+@@ -727,9 +731,9 @@
+     if (pos + 2 < slen && cs[pos+1] == '&' && cs[pos+2] == '\'') {
+         sf->pos += 2;
+         pos = parse_string(sf);
+-        sf->current->str_open = 'u';
+-        if (sf->current->str_close == '\'') {
+-            sf->current->str_close = 'u';
++        sf->cur->str_open = 'u';
++        if (sf->cur->str_close == '\'') {
++            sf->cur->str_close = 'u';
+         }
+         return pos;
+     } else {
+@@ -775,14 +779,14 @@
+ 
+     strend = memchr2(cs + pos + 3, slen - pos - 3, ch, '\'');
+     if (strend == NULL) {
+-        st_assign(sf->current, TYPE_STRING, pos + 3, slen - pos - 3, cs + pos + 3);
+-        sf->current->str_open = 'q';
+-        sf->current->str_close = CHAR_NULL;
++        st_assign(sf->cur, TYPE_STRING, pos + 3, slen - pos - 3, cs + pos + 3);
++        sf->cur->str_open = 'q';
++        sf->cur->str_close = CHAR_NULL;
+         return slen;
+     } else {
+-        st_assign(sf->current, TYPE_STRING, pos + 3, (size_t)(strend - cs) - pos -  3, cs + pos + 3);
+-        sf->current->str_open = 'q';
+-        sf->current->str_close = 'q';
++        st_assign(sf->cur, TYPE_STRING, pos + 3, (size_t)(strend - cs) - pos -  3, cs + pos + 3);
++        sf->cur->str_open = 'q';
++        sf->cur->str_close = 'q';
+         return (size_t)(strend - cs + 2);
+     }
+ }
+@@ -832,7 +836,7 @@
+     if (pos + 2 + wlen  >= slen || cs[pos + 2 + wlen] != '\'') {
+         return parse_word(sf);
+     }
+-    st_assign(sf->current, TYPE_NUMBER, pos, wlen + 3, cs + pos);
++    st_assign(sf->cur, TYPE_NUMBER, pos, wlen + 3, cs + pos);
+     return pos + 2 + wlen + 1;
+ }
+ 
+@@ -861,7 +865,7 @@
+     if (pos + 2 + wlen  >= slen || cs[pos + 2 + wlen] != '\'') {
+         return parse_word(sf);
+     }
+-    st_assign(sf->current, TYPE_NUMBER, pos, wlen + 3, cs + pos);
++    st_assign(sf->cur, TYPE_NUMBER, pos, wlen + 3, cs + pos);
+     return pos + 2 + wlen + 1;
+ }
+ 
+@@ -876,10 +880,10 @@
+     size_t pos = sf->pos;
+     const char* endptr = (const char*) memchr(cs + pos, ']', sf->slen - pos);
+     if (endptr == NULL) {
+-        st_assign(sf->current, TYPE_BAREWORD, pos, sf->slen - pos, cs + pos);
++        st_assign(sf->cur, TYPE_BAREWORD, pos, sf->slen - pos, cs + pos);
+         return sf->slen;
+     } else {
+-        st_assign(sf->current, TYPE_BAREWORD, pos, (size_t)(endptr - cs) - pos + 1, cs + pos);
++        st_assign(sf->cur, TYPE_BAREWORD, pos, (size_t)(endptr - cs) - pos + 1, cs + pos);
+         return (size_t)((endptr - cs) + 1);
+     }
+ }
+@@ -894,23 +898,23 @@
+     size_t wlen = strlencspn(cs + pos, sf->slen - pos,
+                              " []{}<>:\\?=@!#~+-*/&|^%(),';\t\n\v\f\r\"\240\000");
+ 
+-    st_assign(sf->current, TYPE_BAREWORD, pos, wlen, cs + pos);
++    st_assign(sf->cur, TYPE_BAREWORD, pos, wlen, cs + pos);
+ 
+     /* now we need to look inside what we good for "." and "`"
+      * and see if what is before is a keyword or not
+      */
+-    for (i =0; i < sf->current->len; ++i) {
+-        delim = sf->current->val[i];
++    for (i =0; i < sf->cur->len; ++i) {
++        delim = sf->cur->val[i];
+         if (delim == '.' || delim == '`') {
+-            ch = sf->lookup(sf, LOOKUP_WORD, sf->current->val, i);
++            ch = sf->lookup(sf, LOOKUP_WORD, sf->cur->val, i);
+             if (ch != TYPE_NONE && ch != TYPE_BAREWORD) {
+                 /* needed for swig */
+-                st_clear(sf->current);
++                st_clear(sf->cur);
+                 /*
+                  * we got something like "SELECT.1"
+                  * or SELECT`column`
+                  */
+-                st_assign(sf->current, ch, pos, i, cs + pos);
++                st_assign(sf->cur, ch, pos, i, cs + pos);
+                 return pos + i;
+             }
+         }
+@@ -921,11 +925,11 @@
+      */
+     if (wlen < LIBINJECTION_SQLI_TOKEN_SIZE) {
+ 
+-        ch = sf->lookup(sf, LOOKUP_WORD, sf->current->val, wlen);
++        ch = sf->lookup(sf, LOOKUP_WORD, sf->cur->val, wlen);
+         if (ch == CHAR_NULL) {
+             ch = TYPE_BAREWORD;
+         }
+-        sf->current->type = ch;
++        sf->cur->type = ch;
+     }
+     return pos + wlen;
+ }
+@@ -936,7 +940,7 @@
+  */
+ static size_t parse_tick(struct libinjection_sqli_state* sf)
+ {
+-    size_t pos =  parse_string_core(sf->s, sf->slen, sf->pos, sf->current, CHAR_TICK, 1);
++    size_t pos =  parse_string_core(sf->s, sf->slen, sf->pos, sf->cur, CHAR_TICK, 1);
+ 
+     /* we could check to see if start and end of
+      * of string are both "`", i.e. make sure we have
+@@ -947,15 +951,15 @@
+     /* check value of string to see if it's a keyword,
+      * function, operator, etc
+      */
+-    char ch = sf->lookup(sf, LOOKUP_WORD, sf->current->val, sf->current->len);
++    char ch = sf->lookup(sf, LOOKUP_WORD, sf->cur->val, sf->cur->len);
+     if (ch == TYPE_FUNCTION) {
+         /* if it's a function, then convert token */
+-        sf->current->type = TYPE_FUNCTION;
++        sf->cur->type = TYPE_FUNCTION;
+     } else {
+         /* otherwise it's a 'n' type -- mysql treats
+          * everything as a bare word
+          */
+-        sf->current->type = TYPE_BAREWORD;
++        sf->cur->type = TYPE_BAREWORD;
+     }
+     return pos;
+ }
+@@ -978,9 +982,9 @@
+      */
+     if (pos < slen && cs[pos] == '@') {
+         pos += 1;
+-        sf->current->count = 2;
++        sf->cur->count = 2;
+     } else {
+-        sf->current->count = 1;
++        sf->cur->count = 1;
+     }
+ 
+     /*
+@@ -990,12 +994,12 @@
+         if (cs[pos] == '`') {
+             sf->pos = pos;
+             pos = parse_tick(sf);
+-            sf->current->type = TYPE_VARIABLE;
++            sf->cur->type = TYPE_VARIABLE;
+             return pos;
+         } else if (cs[pos] == CHAR_SINGLE || cs[pos] == CHAR_DOUBLE) {
+             sf->pos = pos;
+             pos = parse_string(sf);
+-            sf->current->type = TYPE_VARIABLE;
++            sf->cur->type = TYPE_VARIABLE;
+             return pos;
+         }
+     }
+@@ -1004,10 +1008,10 @@
+     xlen = strlencspn(cs + pos, slen - pos,
+                      " <>:\\?=@!#~+-*/&|^%(),';\t\n\v\f\r'`\"");
+     if (xlen == 0) {
+-        st_assign(sf->current, TYPE_VARIABLE, pos, 0, cs + pos);
++        st_assign(sf->cur, TYPE_VARIABLE, pos, 0, cs + pos);
+         return pos;
+     } else {
+-        st_assign(sf->current, TYPE_VARIABLE, pos, xlen, cs + pos);
++        st_assign(sf->cur, TYPE_VARIABLE, pos, xlen, cs + pos);
+         return pos + xlen;
+     }
+ }
+@@ -1022,7 +1026,7 @@
+ 
+     if (pos + 1 == slen) {
+         /* end of line */
+-        st_assign_char(sf->current, TYPE_BAREWORD, pos, 1, '$');
++        st_assign_char(sf->cur, TYPE_BAREWORD, pos, 1, '$');
+         return slen;
+     }
+ 
+@@ -1038,15 +1042,15 @@
+             strend = memchr2(cs + pos + 2, slen - pos -2, '$', '$');
+             if (strend == NULL) {
+                 /* fell off edge */
+-                st_assign(sf->current, TYPE_STRING, pos + 2, slen - (pos + 2), cs + pos + 2);
+-                sf->current->str_open = '$';
+-                sf->current->str_close = CHAR_NULL;
++                st_assign(sf->cur, TYPE_STRING, pos + 2, slen - (pos + 2), cs + pos + 2);
++                sf->cur->str_open = '$';
++                sf->cur->str_close = CHAR_NULL;
+                 return slen;
+             } else {
+-                st_assign(sf->current, TYPE_STRING, pos + 2,
++                st_assign(sf->cur, TYPE_STRING, pos + 2,
+                           (size_t)(strend - (cs + pos + 2)), cs + pos + 2);
+-                sf->current->str_open = '$';
+-                sf->current->str_close = '$';
++                sf->cur->str_open = '$';
++                sf->cur->str_close = '$';
+                 return (size_t)(strend - cs + 2);
+             }
+         } else {
+@@ -1054,14 +1058,14 @@
+             xlen = strlenspn(cs + pos + 1, slen - pos - 1, "abcdefghjiklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+             if (xlen == 0) {
+                 /* hmm it's "$" _something_ .. just add $ and keep going*/
+-                st_assign_char(sf->current, TYPE_BAREWORD, pos, 1, '$');
++                st_assign_char(sf->cur, TYPE_BAREWORD, pos, 1, '$');
+                 return pos + 1;
+             }
+             /* we have $foobar????? */
+             /* is it $foobar$ */
+             if (pos + xlen + 1 == slen || cs[pos+xlen+1] != '$') {
+                 /* not $foobar$, or fell off edge */
+-                st_assign_char(sf->current, TYPE_BAREWORD, pos, 1, '$');
++                st_assign_char(sf->cur, TYPE_BAREWORD, pos, 1, '$');
+                 return pos + 1;
+             }
+ 
+@@ -1070,16 +1074,16 @@
+ 
+             if (strend == NULL || ((size_t)(strend - cs) < (pos+xlen+2))) {
+                 /* fell off edge */
+-                st_assign(sf->current, TYPE_STRING, pos+xlen+2, slen - pos - xlen - 2, cs+pos+xlen+2);
+-                sf->current->str_open = '$';
+-                sf->current->str_close = CHAR_NULL;
++                st_assign(sf->cur, TYPE_STRING, pos+xlen+2, slen - pos - xlen - 2, cs+pos+xlen+2);
++                sf->cur->str_open = '$';
++                sf->cur->str_close = CHAR_NULL;
+                 return slen;
+             } else {
+                 /* got one */
+-                st_assign(sf->current, TYPE_STRING, pos+xlen+2,
++                st_assign(sf->cur, TYPE_STRING, pos+xlen+2,
+                           (size_t)(strend - (cs + pos + xlen + 2)), cs+pos+xlen+2);
+-                sf->current->str_open = '$';
+-                sf->current->str_close = '$';
++                sf->cur->str_open = '$';
++                sf->cur->str_close = '$';
+                 return (size_t)((strend + xlen + 2) - cs);
+             }
+         }
+@@ -1087,7 +1091,7 @@
+         /* $. should parsed as a word */
+         return parse_word(sf);
+     } else {
+-        st_assign(sf->current, TYPE_NUMBER, pos, 1 + xlen, cs + pos);
++        st_assign(sf->cur, TYPE_NUMBER, pos, 1 + xlen, cs + pos);
+         return pos + 1 + xlen;
+     }
+ }
+@@ -1116,10 +1120,10 @@
+         if (digits) {
+             xlen = strlenspn(cs + pos + 2, slen - pos - 2, digits);
+             if (xlen == 0) {
+-                st_assign(sf->current, TYPE_BAREWORD, pos, 2, cs + pos);
++                st_assign(sf->cur, TYPE_BAREWORD, pos, 2, cs + pos);
+                 return pos + 2;
+             } else {
+-                st_assign(sf->current, TYPE_NUMBER, pos, 2 + xlen, cs + pos);
++                st_assign(sf->cur, TYPE_NUMBER, pos, 2 + xlen, cs + pos);
+                 return pos + 2 + xlen;
+             }
+         }
+@@ -1137,7 +1141,7 @@
+         }
+         if (pos - start == 1) {
+             /* only one character read so far */
+-            st_assign_char(sf->current, TYPE_DOT, start, 1, '.');
++            st_assign_char(sf->cur, TYPE_DOT, start, 1, '.');
+             return pos;
+         }
+     }
+@@ -1185,9 +1189,9 @@
+          * "10.10E"
+          * ".E"
+          * this is a WORD not a number!! */
+-        st_assign(sf->current, TYPE_BAREWORD, start, pos - start, cs + start);
++        st_assign(sf->cur, TYPE_BAREWORD, start, pos - start, cs + start);
+     } else {
+-        st_assign(sf->current, TYPE_NUMBER, start, pos - start, cs + start);
++        st_assign(sf->cur, TYPE_NUMBER, start, pos - start, cs + start);
+     }
+     return pos;
+ }
+@@ -1206,7 +1210,7 @@
+ {
+     pt2Function fnptr;
+     size_t *pos = &sf->pos;
+-    stoken_t *current = sf->current;
++    stoken_t *current = sf->cur;
+     const char *s = sf->s;
+     const size_t slen = sf->slen;
+ 
+@@ -1215,7 +1219,7 @@
+     }
+ 
+     st_clear(current);
+-    sf->current = current;
++    sf->cur = current;
+ 
+     /*
+      * if we are at beginning of string
+@@ -1268,7 +1272,7 @@
+     sf->lookup   = libinjection_sqli_lookup_word;
+     sf->userdata = 0;
+     sf->flags    = flags;
+-    sf->current  = &(sf->tokenvec[0]);
++    sf->cur  = &(sf->tokenvec[0]);
+ }
+ 
+ void libinjection_sqli_reset(struct libinjection_sqli_state * sf, int flags)
+@@ -1386,13 +1390,13 @@
+     /* Skip all initial comments, right-parens ( and unary operators
+      *
+      */
+-    sf->current = &(sf->tokenvec[0]);
++    sf->cur = &(sf->tokenvec[0]);
+     while (more) {
+         more = libinjection_sqli_tokenize(sf);
+-        if ( ! (sf->current->type == TYPE_COMMENT ||
+-                sf->current->type == TYPE_LEFTPARENS ||
+-                sf->current->type == TYPE_SQLTYPE ||
+-                st_is_unary_op(sf->current))) {
++        if ( ! (sf->cur->type == TYPE_COMMENT ||
++                sf->cur->type == TYPE_LEFTPARENS ||
++                sf->cur->type == TYPE_SQLTYPE ||
++                st_is_unary_op(sf->cur))) {
+             break;
+         }
+     }
+@@ -1461,11 +1465,11 @@
+ 
+         /* get up to two tokens */
+         while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && (pos - left) < 2) {
+-            sf->current = &(sf->tokenvec[pos]);
++            sf->cur = &(sf->tokenvec[pos]);
+             more = libinjection_sqli_tokenize(sf);
+             if (more) {
+-                if (sf->current->type == TYPE_COMMENT) {
+-                    st_copy(&last_comment, sf->current);
++                if (sf->cur->type == TYPE_COMMENT) {
++                    st_copy(&last_comment, sf->cur);
+                 } else {
+                     last_comment.type = CHAR_NULL;
+                     pos += 1;
+@@ -1691,11 +1695,11 @@
+         */
+         FOLD_DEBUG;
+         while (more && pos <= LIBINJECTION_SQLI_MAX_TOKENS && pos - left < 3) {
+-            sf->current = &(sf->tokenvec[pos]);
++            sf->cur = &(sf->tokenvec[pos]);
+             more = libinjection_sqli_tokenize(sf);
+             if (more) {
+-                if (sf->current->type == TYPE_COMMENT) {
+-                    st_copy(&last_comment, sf->current);
++                if (sf->cur->type == TYPE_COMMENT) {
++                    st_copy(&last_comment, sf->cur);
+                 } else {
+                     last_comment.type = CHAR_NULL;
+                     pos += 1;

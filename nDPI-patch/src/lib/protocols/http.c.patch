@@ -1,0 +1,47 @@
+--- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/lib/protocols/http.c	2021-07-22 13:19:50.924012830 +0000
++++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/lib/protocols/http.c	2021-07-22 15:33:14.088349029 +0000
+@@ -26,7 +26,9 @@
+ #define NDPI_CURRENT_PROTO NDPI_PROTOCOL_HTTP
+ 
+ #include "ndpi_api.h"
++#ifndef __KERNEL__
+ #include <stdlib.h>
++#endif
+ 
+ static const char* binary_file_mimes_e[] = { "exe", NULL };
+ static const char* binary_file_mimes_v[] = { "vnd.ms-cab-compressed", "vnd.microsoft.portable-executable", NULL };
+@@ -144,7 +146,8 @@
+ 	  attachment_len += filename_len-ATTACHMENT_LEN-1;
+ 
+ 	  if((attachment_len+ATTACHMENT_LEN) <= packet->content_disposition_line.len) {
+-	    for(int i = 0; binary_file_ext[i] != NULL; i++) {
++            int i;
++	    for(i = 0; binary_file_ext[i] != NULL; i++) {
+ 	      /* Use memcmp in case content-disposition contains binary data */
+ 	      if(memcmp((const char*)&packet->content_disposition_line.ptr[attachment_len],
+ 			 binary_file_ext[i], ATTACHMENT_LEN) == 0) {
+@@ -360,6 +363,15 @@
+ }
+ 
+ /* ************************************************************* */
++// http://lkml.iu.edu/hypermail/linux/kernel/0303.2/2007.html
++static unsigned int inet_addr(char *str)
++{
++  int a,b,c,d;
++  char arr[4];
++  sscanf(str,"%d.%d.%d.%d",&a,&b,&c,&d);
++  arr[0] = a; arr[1] = b; arr[2] = c; arr[3] = d;
++  return *(unsigned int*)arr;
++}
+ 
+ static void ndpi_check_numeric_ip(struct ndpi_detection_module_struct *ndpi_struct,
+ 				  struct ndpi_flow_struct *flow,
+@@ -374,7 +386,7 @@
+     double_dot[0] = '\0';
+   
+   ip_addr.s_addr = inet_addr(buf);
+-  if(strcmp(inet_ntoa(ip_addr), buf) == 0)
++  if(strcmp(ndpi_inet_ntoa(ip_addr), buf) == 0)
+     NDPI_SET_BIT(flow->risk, NDPI_HTTP_NUMERIC_IP_HOST);
+ }
+ 

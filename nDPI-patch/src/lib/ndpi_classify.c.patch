@@ -1,0 +1,47 @@
+--- ../../../nDPI/src/lib/ndpi_classify.c	2021-06-29 15:18:26.048077492 +0000
++++ ./ndpi_classify.c	2021-06-29 19:31:51.452078676 +0000
+@@ -43,12 +43,14 @@
+ 
+ #define _GNU_SOURCE
+ 
++#ifndef __KERNEL__
+ #include <stdio.h>
+ #include <ctype.h>
+ // #include <sys/time.h>
+ #include <stdlib.h>
+ #include <stdint.h>
+ #include <math.h>
++#endif
+ #include "ndpi_main.h"
+ #include "ndpi_classify.h"
+ #include "ndpi_includes.h"
+@@ -380,6 +382,7 @@
+   }
+ }
+ 
++#if 0
+ /* transform times array to Markov chain */
+ void
+ ndpi_get_mc_rep_times (uint16_t *times, float *time_mc, uint16_t num_packets)
+@@ -587,7 +590,7 @@
+     break;
+   }
+ }
+-
++#endif
+ /* *********************************************************************
+  * ---------------------------------------------------------------------
+  *                      Time functions
+@@ -685,10 +688,11 @@
+   time_t nowtime;
+   struct tm nowtm_r;
+   char tmbuf[NDPI_TIMESTAMP_LEN];
+-
++#if 0
+   gettimeofday(&tv, NULL);
+   nowtime = tv.tv_sec;
+   localtime_r(&nowtime, &nowtm_r);
+   strftime(tmbuf, NDPI_TIMESTAMP_LEN, "%H:%M:%S", &nowtm_r);
+   snprintf(log_ts, log_ts_len, "%s.%06ld", tmbuf, (long)tv.tv_usec);
++#endif
+ }

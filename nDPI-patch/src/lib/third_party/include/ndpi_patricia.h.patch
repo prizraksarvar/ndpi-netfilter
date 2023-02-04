@@ -1,0 +1,34 @@
+--- /home/chrisn/src/3/ndpi-netfilter/nDPI//src/lib/third_party/include/ndpi_patricia.h	2021-07-19 13:47:49.176005951 +0000
++++ /home/chrisn/src/3/ndpi-netfilter/nDPI-patch//src/lib/third_party/include/ndpi_patricia.h	2021-07-19 14:39:55.652137289 +0000
+@@ -51,13 +51,18 @@
+ /* { from defs.h */
+ #define prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
+ 
++#ifdef __KERNEL__
++#define MAXLINE 512
++#else
+ #define MAXLINE 1024
++#endif
+ 
+ #define BIT_TEST(f, b)  ((f) & (b))
+ /* } */
+ 
+ #define addroute make_and_lookup
+ 
++#ifndef __KERNEL__
+ #include <sys/types.h> /* for u_* definitions (on FreeBSD 5) */
+ #include <errno.h> /* for EAFNOSUPPORT */
+ 
+@@ -77,7 +82,11 @@
+ #include <winsock2.h>
+ #include <ws2tcpip.h> /* IPv6 */
+ #endif
+-
++#else
++#include <linux/types.h>
++#include <linux/in.h>
++#include <linux/in6.h>
++#endif /* __KERNEL__ */
+ /* { from mrt.h */
+ 
+ typedef struct the_prefix4_t {

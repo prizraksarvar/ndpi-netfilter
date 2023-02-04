@@ -1,50 +1,106 @@
 This package is a GPL implementation of an iptables and netfilter module for
 nDPI integration into the Linux kernel 5.4+.
 
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=4KDWWS2B2GBGQ&lc=BR&item_name=betolj%40gmail%2ecom" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" alt="PayPal — The safer, easier way to pay online."></a>
+It is based on an initial implementation for Ubuntu 14.04 by [Humberto
+Jucá](https://github.com/betolj/ndpi-netfilter), recently updated for
+Ubuntu 20.04 by
+[prizraksarvar](https://github.com/prizraksarvar/ndpi-netfilter) with
+refinements by [Chris
+Nelson](https://github.com/ChrisNelson-CyberReef).
 
+# Prerequisites
 
-The prerequisites are:
+Earlier versions of this module included documentation for
+reconfiguring the 2.x kernel to enable the required Netfilter
+Connection Tracking.  Around version 4.16 of the kernel, that was
+turned on by default so kernel changes are no longer required; this
+should work on generic Ubuntu 20.04.
 
-- Tested on Ubuntu 14.04.1 LTS (Kernel 3.13.0-37-generic)
-- Following packages to compile kernel-modules:
-   linux-headers
-   iptables-dev >= version 1.4.21-1ubuntu1
-   nDPI source package
+You _will_ need kernal headers and some other packages to build and
+install this module.
 
+```
+  apt-get install -y libtool
+  apt-get install -y pkg-config
+  apt-get install -y libpcap-dev
+  apt-get install -y libxtables-dev
+  apt-get install -y libip6tc-dev
+  apt-get install -y libip4tc-dev
+  apt-get install -y libjson-c-dev
+  apt-get install -y linux-source linux-headers-`uname -r`
+  ln -s /usr/src/linux-headers-`uname -r` /lib/modules/`uname -r`/build
+```
 
-Compiled kernel features
-------------------------
+# nDPI
 
-You do not need to do the below steps for Ubuntu 14.04.1 LTS
+This module depends on
+[nDPI](https://www.ntop.org/products/deep-packet-inspection/ndpi/),
+"Open and Extensible LGPLv3 Deep Packet Inspection Library."  Their [GitHub repository](https://github.com/ntop/nDPI) is used as a submodule of this repository.  You must clone this repository with a command like:
 
-In order to use nDPI as a kernel module notice that:
+```
+  git clone --recurse-submodules https://github.com/TechTeamCR/ndpi-netfilter
+```
 
-- You should ENABLE Netfilter conntrack events (and also enable Advanced
-  netfilter features to see it).
+With that done, go to where you cloned the code and do:
 
-In kernel 2.6.34 or greater its defined as:
+```
+  git submodule sync
+  git submodule update
+  cd nDPI
+  ./autogen.sh && ./configure && make
+  sudo make install
+```
 
-Connection tracking events
-Symbol: NF_CONNTRACK_EVENTS
-Location:
--> Networking support
- -> Networking options
-  -> Network packet filtering framework (Netfilter)
-   -> Core Netfilter Configuration
-    -> Netfilter connection tracking support
+# Building the module
 
-In kernel 2.6.34 or greater its defined as:
+The `ndpi-netfilter` build needs to know where to find the nDPI source (built in the previous step).  Specify the `NDPI_PATH` with a command like:
 
-Connection tracking netlink interface
-Symbol: NF_CT_NETLINK
-Location:
--> Networking support
- -> Networking options
-  -> Network packet filtering framework (Netfilter)
-   -> Core Netfilter Configuration
-    -> Netfilter connection tracking support
+```
+  NDPI_PATH=`pwd`/nDPI make
+  sudo make modules_install
+  sudo mkdir /lib/xtables/
+  sudo cp ipt/libxt_ndpi.so /lib/xtables/
+  sudo cp ipt/libxt_ndpi.so /usr/lib/x86_64-linux-gnu/xtables/
+```
 
+# Loading the Module
 
-Once you have downloaded/installed each package and checked for the above
-kernel features you can read the INSTALL file.
+You can remove the previous version of the module, if any, with:
+
+```
+  sudo modprobe -r xt_ndpi
+```
+
+You can install the current version of the module with:
+
+```
+  sudo modprobe xt_ndpi
+```
+
+# Enabling Connection Tracking
+
+Connection tracking must be turned on in iptables with a command like:
+
+```
+  sudo iptables -t mangle -C PREROUTING -m conntrack --ctstate INVALID -j DROP 
+```
+
+or
+
+```
+  sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+```
+
+# Testing
+
+You can see the protocols supported by this module with:
+
+```
+  iptables -m ndpi --help
+```
+
+You can block Youtube traffic with:
+
+```
+  sudo iptables -t mangle -A PREROUTING -m ndpi --youtube -j DROP
+```
