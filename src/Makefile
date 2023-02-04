@@ -13,11 +13,11 @@ obj-m := xt_ndpi.o
 xt_ndpi-y := main.o \
                 ${NDPI_SRC}/lib/ndpi_main.o \
                 ${NDPI_SRC}/lib/ndpi_community_id.o \
+                ${NDPI_SRC}/lib/ndpi_geoip.o \
                 ${NDPI_SRC}/lib/ndpi_utils.o \
                 ${NDPI_SRC}/lib/ndpi_classify.o \
                 ${NDPI_SRC}/lib/ndpi_serializer.o \
                 ${NDPI_SRC}/lib/ahocorasick.o \
-                ${NDPI_SRC}/lib/ht_hash.o \
                 ${NDPI_SRC}/lib/libcache.o \
                 ${NDPI_SRC}/lib/libinjection_html5.o \
                 ${NDPI_SRC}/lib/libinjection_sqli.o \
@@ -25,31 +25,33 @@ xt_ndpi-y := main.o \
                 ${NDPI_SRC}/lib/ndpi_md5.o \
                 ${NDPI_SRC}/lib/ndpi_patricia.o \
                 ${NDPI_SRC}/lib/ndpi_sha1.o \
-                ${NDPI_SRC}/lib/node.o \
                 ${NDPI_SRC}/lib/sha1-fast.o \
-                ${NDPI_SRC}/lib/sort.o \
                 ${NDPI_SRC}/lib/strptime.o \
                 ${NDPI_PRO}/tls.o \
                 ${NDPI_PRO}/afp.o \
                 ${NDPI_PRO}/aimini.o \
                 ${NDPI_PRO}/ajp.o \
                 ${NDPI_PRO}/amazon_video.o \
+                ${NDPI_PRO}/among_us.o \
                 ${NDPI_PRO}/amqp.o \
                 ${NDPI_PRO}/apple_push.o \
                 ${NDPI_PRO}/applejuice.o \
                 ${NDPI_PRO}/armagetron.o \
+                ${NDPI_PRO}/avast_securedns.o \
                 ${NDPI_PRO}/ayiya.o \
                 ${NDPI_PRO}/bgp.o \
                 ${NDPI_PRO}/bittorrent.o \
                 ${NDPI_PRO}/bjnp.o \
                 ${NDPI_PRO}/btlib.o \
                 ${NDPI_PRO}/capwap.o \
+                ${NDPI_PRO}/cassandra.o \
                 ${NDPI_PRO}/checkmk.o \
                 ${NDPI_PRO}/ciscovpn.o \
                 ${NDPI_PRO}/citrix.o \
                 ${NDPI_PRO}/coap.o \
                 ${NDPI_PRO}/collectd.o \
                 ${NDPI_PRO}/corba.o \
+                ${NDPI_PRO}/cpha.o \
                 ${NDPI_PRO}/crossfire.o \
                 ${NDPI_PRO}/csgo.o \
                 ${NDPI_PRO}/dcerpc.o \
@@ -67,12 +69,12 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/eaq.o \
                 ${NDPI_PRO}/edonkey.o \
                 ${NDPI_PRO}/fasttrack.o \
-                ${NDPI_PRO}/fbzero.o \
                 ${NDPI_PRO}/fiesta.o \
                 ${NDPI_PRO}/fix.o \
                 ${NDPI_PRO}/florensia.o \
                 ${NDPI_PRO}/ftp_control.o \
                 ${NDPI_PRO}/ftp_data.o \
+                ${NDPI_PRO}/genshin_impact.o \
                 ${NDPI_PRO}/git.o \
                 ${NDPI_PRO}/gnutella.o \
                 ${NDPI_PRO}/gtp.o \
@@ -80,8 +82,8 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/h323.o \
                 ${NDPI_PRO}/halflife2_and_mods.o \
                 ${NDPI_PRO}/hangout.o \
+                ${NDPI_PRO}/hpvirtgrp.o \
                 ${NDPI_PRO}/http.o \
-                ${NDPI_PRO}/http_activesync.o \
                 ${NDPI_PRO}/iax.o \
                 ${NDPI_PRO}/icecast.o \
                 ${NDPI_PRO}/iec60870-5-104.o \
@@ -105,6 +107,7 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/mgcp.o \
                 ${NDPI_PRO}/mining.o \
                 ${NDPI_PRO}/modbus.o \
+                ${NDPI_PRO}/mongodb.o \
                 ${NDPI_PRO}/mpegts.o \
                 ${NDPI_PRO}/mqtt.o \
                 ${NDPI_PRO}/mssql_tds.o \
@@ -149,7 +152,6 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/socks45.o \
                 ${NDPI_PRO}/someip.o \
                 ${NDPI_PRO}/sopcast.o \
-                ${NDPI_PRO}/soulseek.o \
                 ${NDPI_PRO}/spotify.o \
                 ${NDPI_PRO}/ssdp.o \
                 ${NDPI_PRO}/ssh.o \
@@ -168,10 +170,8 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/tftp.o \
                 ${NDPI_PRO}/thunder.o \
                 ${NDPI_PRO}/tinc.o \
-                ${NDPI_PRO}/tor.o \
                 ${NDPI_PRO}/tvuplayer.o \
                 ${NDPI_PRO}/ubntac2.o \
-                ${NDPI_PRO}/upnp.o \
                 ${NDPI_PRO}/usenet.o \
                 ${NDPI_PRO}/vhua.o \
                 ${NDPI_PRO}/viber.o \
@@ -186,6 +186,7 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/world_of_warcraft.o \
                 ${NDPI_PRO}/xbox.o \
                 ${NDPI_PRO}/xdmcp.o \
+                ${NDPI_PRO}/z3950.o \
                 ${NDPI_PRO}/zabbix.o \
                 ${NDPI_PRO}/zattoo.o \
                 ${NDPI_PRO}/zeromq.o
@@ -216,6 +217,10 @@ patch: $(NDPI_SRC)
 	for patch in ${PATCHED_FILES} ; do \
 	    patch ${NDPI_SRC}/$${patch} < ${NDPI_PATCH}/$${patch}.patch ; \
 	done;
+	@if [ "`find ${NDPI_SRC} -type f -name '*.rej'`" != "" ] ; then \
+	    >&2 echo  "Patching failed.  Check '.rej' files"; \
+	    exit 1; \
+	fi
 
 $(NDPI_SRC):
 	@echo "Creating $(NDPI_SRC)"

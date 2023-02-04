@@ -1,6 +1,6 @@
---- /home/chris/src/CyberReef/nDPI/src/lib/protocols/bittorrent.c	2021-06-14 12:55:42.802929762 -0400
-+++ ./bittorrent.c	2021-06-21 09:03:46.747032202 -0400
-@@ -451,8 +451,11 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/bittorrent.c	2022-06-30 09:34:28.870051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/bittorrent.c	2022-06-30 13:31:33.730648836 -0400
+@@ -562,8 +562,11 @@
  	  } else if((v0_flags < 6 /* ST_NUM_STATES */) && (v0_extension < 3 /* EXT_NUM_EXT */)) {
  	    u_int32_t ts = ntohl(*((u_int32_t*)&(packet->payload[4])));
  	    u_int32_t now;
@@ -12,4 +12,4 @@
 +#endif
  
  	    if((ts < (now+86400)) && (ts > (now-86400))) {
- 	      bt_proto = ndpi_strnstr((const char *)&packet->payload[20], "BitTorrent protocol", packet->payload_packet_len-20);
+ 	      bt_proto = ndpi_strnstr((const char *)&packet->payload[20], BITTORRENT_PROTO_STRING, packet->payload_packet_len-20);

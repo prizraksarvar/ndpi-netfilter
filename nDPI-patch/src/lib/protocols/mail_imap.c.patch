@@ -1,0 +1,21 @@
+--- /home/chrisn/src/ndpi-netfilter/nDPI//src/lib/protocols/mail_imap.c	2022-06-30 09:34:28.878051274 -0400
++++ /home/chrisn/src/ndpi-netfilter/nDPI-patch//src/lib/protocols/mail_imap.c	2022-07-01 14:26:33.718770846 -0400
+@@ -174,7 +174,8 @@
+ 	  strncpy(str, (const char*)packet->payload + command_start + 5, len);
+ 	  str[len] = '\0';
+ 
+-	  user = strtok_r(str, " \"\r\n", &saveptr);
++	  saveptr = str;
++	  user = strsep(&saveptr, " \"\r\n");
+ 	  if(user) {
+ 	    char *pwd;
+ 
+@@ -184,7 +185,7 @@
+ 
+ 	    ndpi_set_risk(ndpi_struct, flow, NDPI_CLEAR_TEXT_CREDENTIALS);
+ 
+-	    pwd = strtok_r(NULL, " \"\r\n", &saveptr);
++	    pwd = strsep(&saveptr, " \"\r\n");
+ 	    if(pwd) {
+ 	      snprintf(flow->l4.tcp.ftp_imap_pop_smtp.password,
+ 		       sizeof(flow->l4.tcp.ftp_imap_pop_smtp.password),

@@ -65,7 +65,7 @@ The `ndpi-netfilter` build needs to know where to find the nDPI source (built in
 
 # Loading the Module
 
-You can remove the previous version of the module, if any, with:
+You can remove the previously loaded version of the module, if any, with:
 
 ```
   sudo modprobe -r xt_ndpi
@@ -77,18 +77,18 @@ You can install the current version of the module with:
   sudo modprobe xt_ndpi
 ```
 
+Some run-time tracing can be enabled with the `debug_dpi` parameter:
+```
+  sudo modprobe xt_ndpi debug_dpi=1
+```
+
 # Enabling Connection Tracking
 
 Connection tracking must be turned on in iptables with a command like:
 
 ```
-  sudo iptables -t mangle -C PREROUTING -m conntrack --ctstate INVALID -j DROP 
-```
-
-or
-
-```
-  sudo iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+  sudo iptables -t mangle -A PREROUTING -j CONNMARK --restore-mark
+  sudo iptables -t mangle -A POSTROUTING -j CONNMARK --save-mark
 ```
 
 # Testing
@@ -99,8 +99,22 @@ You can see the protocols supported by this module with:
   iptables -m ndpi --help
 ```
 
-You can block Youtube traffic with:
+You can see if the module is loaded and basically working by creating
+a rule for `ICMP` (This doesn't exercise much of the module because
+there is special-case code for handling `ICMP`.)
 
 ```
-  sudo iptables -t mangle -A PREROUTING -m ndpi --youtube -j DROP
+  iptables -t mangle -A PREROUTING -m ndpi --icmp -j ACCEPT
 ```
+
+Then pinging a remote system:
+```
+  ping google.com
+```
+Then looking at the counters for the rules you created:
+```
+ sudo iptables-save -c | grep icmp
+```
+You should see non-0 packet and byte counters at the start of the line:
+
+ [0:0] -A PREROUTING -m ndpi --icmp  -j ACCEPT
