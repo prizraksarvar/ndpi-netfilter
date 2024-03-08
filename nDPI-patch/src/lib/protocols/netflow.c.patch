@@ -1,16 +1,17 @@
---- /home/chris/src/CyberReef/nDPI/src/lib/protocols/netflow.c	2021-06-14 12:55:42.810929695 -0400
-+++ ./netflow.c	2021-06-18 16:47:15.247915724 -0400
+--- /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI//src/lib/protocols/netflow.c	2024-03-07 20:14:42
++++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/lib/protocols/netflow.c	2024-03-08 08:00:43
 @@ -24,11 +24,17 @@
  
  #include "ndpi_api.h"
  
 -
  #ifdef WIN32
- extern int gettimeofday(struct timeval * tp, struct timezone * tzp);
+-extern int gettimeofday(struct timeval * tp, struct timezone * tzp);
++extern int gettimeofday(struct pkt_timeval * tp, struct timezone * tzp);
  #endif
 -#define do_gettimeofday(a) gettimeofday(a, NULL)
 +// See https://community.asterisk.org/t/cant-compile-dahdi-anymore-kernel-5-0-3-200-fc29-x86-64/79140/6
-+static void do_gettimeofday(struct timeval *tv)
++static void do_gettimeofday(struct pkt_timeval *tv)
 +{
 +    struct timespec64 ts;
 +    ktime_get_real_ts64(&ts);
@@ -20,3 +21,12 @@
  
  struct flow_ver1_rec {
    u_int32_t srcaddr;    /* Source IP Address */
+@@ -103,7 +109,7 @@
+   // const u_int8_t *packet_payload = packet->payload;
+   u_int32_t payload_len = packet->payload_packet_len;
+   time_t now;
+-  struct timeval now_tv;
++  struct pkt_timeval now_tv;
+ 
+   NDPI_LOG_DBG(ndpi_struct, "search netflow\n");
+ 
