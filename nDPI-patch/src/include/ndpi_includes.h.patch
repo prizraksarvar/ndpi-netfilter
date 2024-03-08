@@ -1,5 +1,5 @@
---- /home/chris/src/CyberReef/nDPI/src/include/ndpi_includes.h	2021-06-14 19:45:51.972249148 -0400
-+++ ./ndpi_includes.h	2021-06-14 21:05:13.359341132 -0400
+--- /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI//src/include/ndpi_includes.h	2024-03-07 20:14:42
++++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/include/ndpi_includes.h	2024-03-08 07:53:20
 @@ -24,6 +24,7 @@
  #ifndef __NDPI_INCLUDES_H__
  #define __NDPI_INCLUDES_H__
@@ -8,10 +8,11 @@
  #include <stdint.h>
  #include <stdio.h>
  #include <stdarg.h>
-@@ -33,10 +34,12 @@
+@@ -32,10 +33,13 @@
+ #include <ctype.h>
  #include <time.h>
  #include <limits.h>
- #include <stdbool.h>
++#include <stdbool.h>
 +#endif
  
  #ifdef WIN32
@@ -20,8 +21,8 @@
 +#ifndef __KERNEL__
  #include <sys/types.h>
  #include <sys/param.h>
- #include <arpa/inet.h>
-@@ -46,10 +49,21 @@
+ #include <pthread.h>
+@@ -46,10 +50,20 @@
  #include <netinet/ip.h>
  #include <netinet/tcp.h>
  #include <netinet/udp.h>
@@ -32,7 +33,6 @@
 +#endif
  
  #if !defined __APPLE__ && !defined __FreeBSD__ && !defined __NetBSD__ && !defined __OpenBSD__
-+
 +#ifndef __KERNEL__
  #include <endian.h>
  #include <byteswap.h>
@@ -50,5 +50,5 @@
 -typedef struct timeval pkt_timeval;
 +typedef struct __kernel_old_timeval pkt_timeval;
  #endif /* __OpenBSD__ */
-
+ 
  #endif /* __NDPI_INCLUDES_H__ */
