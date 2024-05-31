@@ -137,7 +137,7 @@ ndpi_mt4_reg = {
 	.extra_opts = ndpi_mt_opts,
 };
 
-void _init(void)
+void __attribute__((constructor)) _INIT (void)
 {
         int i;
 
