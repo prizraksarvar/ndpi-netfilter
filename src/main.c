@@ -775,6 +775,8 @@ static int __init ndpi_mt_init(void)
                 goto err_out;
 	}
 
+    ndpi_set_log_level(ndpi_struct, NDPI_LOG_TRACE);
+
         for (i = 0; i < NDPI_LAST_IMPLEMENTED_PROTOCOL; i++){
                 atomic_set (&protocols_cnt[i], 0);
 
