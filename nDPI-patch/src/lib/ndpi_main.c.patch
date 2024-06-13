@@ -1,5 +1,5 @@
---- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2021-07-22 13:19:50.924012830 +0000
-+++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2021-07-22 13:43:02.264071278 +0000
+--- /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2024-06-13 18:31:28
++++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2024-06-13 21:17:58
 @@ -21,9 +21,11 @@
   *
   */
@@ -200,7 +200,65 @@
  }
  
  /* ******************************************************************** */
-@@ -4277,7 +4332,12 @@
+@@ -4061,14 +4116,24 @@
+ 
+ u_int16_t ndpi_guess_host_protocol_id(struct ndpi_detection_module_struct *ndpi_str,
+ 				      struct ndpi_flow_struct *flow) {
++    if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++        NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                 "START packet processing ndpi_guess_host_protocol_id 3\n");
+   u_int16_t ret = NDPI_PROTOCOL_UNKNOWN;
+ 
+-  if(flow->packet.iph) {
++  if(flow && flow->packet.iph) {
++      if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++          NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                   "START packet processing ndpi_guess_host_protocol_id 4\n");
+     struct in_addr addr;
+     u_int16_t sport, dport;
+ 
+     addr.s_addr = flow->packet.iph->saddr;
+ 
++      if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++          NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                   "START packet processing ndpi_guess_host_protocol_id 5\n");
++
+     if((flow->l4_proto == IPPROTO_TCP) && flow->packet.tcp)
+       sport = flow->packet.tcp->source, dport = flow->packet.tcp->dest;
+     else if((flow->l4_proto == IPPROTO_UDP) && flow->packet.udp)
+@@ -4076,15 +4141,31 @@
+     else
+       sport = dport = 0;
+ 
++      if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++          NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                   "START packet processing ndpi_guess_host_protocol_id 6\n");
++
+     /* guess host protocol */
+     ret = ndpi_network_port_ptree_match(ndpi_str, &addr, sport);
++
++      if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++          NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                   "START packet processing ndpi_guess_host_protocol_id 7\n");
+ 
+     if(ret == NDPI_PROTOCOL_UNKNOWN) {
+       addr.s_addr = flow->packet.iph->daddr;
++
++        if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++            NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                     "START packet processing ndpi_guess_host_protocol_id 8\n");
+       ret = ndpi_network_port_ptree_match(ndpi_str, &addr, dport);
+     }
+   }
+ 
++    if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++        NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                 "START packet processing ndpi_guess_host_protocol_id 9\n");
++
+   return(ret);
+ }
+ 
+@@ -4277,7 +4358,12 @@
        bits = atoi(ptr);
    }
  
@@ -214,7 +272,7 @@
      NDPI_LOG_DBG2(ndpi_str, "Invalid ip/ip+netmask: %s\n", ip_address_and_mask);
      return(-1);
    }
-@@ -4314,7 +4374,7 @@
+@@ -4314,7 +4400,7 @@
    memset(&ac_pattern, 0, sizeof(ac_pattern));
  
    if(ndpi_str->custom_categories.hostnames_shadow.ac_automa == NULL) {
@@ -223,7 +281,7 @@
      return(-1);
    }
  
-@@ -4323,12 +4383,12 @@
+@@ -4323,12 +4409,12 @@
  
    rc = ac_automata_add(ndpi_str->custom_categories.hostnames_shadow.ac_automa, &ac_pattern);
    if(rc != ACERR_DUPLICATE_PATTERN && rc != ACERR_SUCCESS) {
@@ -238,7 +296,28 @@
  
    return(0);
  }
-@@ -5691,7 +5751,7 @@
+@@ -4692,6 +4778,9 @@
+     /* guess protocol */
+     flow->guessed_protocol_id =
+       (int16_t) ndpi_guess_protocol_id(ndpi_str, flow, protocol, sport, dport, &user_defined_proto);
++      if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++          NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                   "START packet processing ndpi_guess_host_protocol_id 1\n");
+     flow->guessed_host_protocol_id = ndpi_guess_host_protocol_id(ndpi_str, flow);
+ 
+     if(ndpi_str->custom_categories.categories_loaded && flow->packet.iph) {
+@@ -4724,6 +4813,10 @@
+       /* guess host protocol */
+       if(flow->packet.iph) {
+ 
++          if(ndpi_str->ndpi_log_level >= NDPI_LOG_TRACE)
++              NDPI_LOG(flow ? flow->detected_protocol_stack[0] : NDPI_PROTOCOL_UNKNOWN, ndpi_str, NDPI_LOG_TRACE,
++                       "START packet processing ndpi_guess_host_protocol_id 2\n");
++
+ 	flow->guessed_host_protocol_id = ndpi_guess_host_protocol_id(ndpi_str, flow);
+ 
+ 	/*
+@@ -5691,7 +5784,7 @@
  
  #ifdef NDPI_DETECTION_SUPPORT_IPV6
    if(ndpi_is_ipv6(ip)) {
@@ -247,7 +326,7 @@
        buf[0] = '\0';
  
      return(buf);
-@@ -5710,12 +5770,23 @@
+@@ -5710,12 +5803,23 @@
    int rv = -1;
    memset(parsed_ip, 0, sizeof(*parsed_ip));
  
@@ -273,7 +352,7 @@
        rv = 6;
  #endif
    }
-@@ -6378,7 +6449,6 @@
+@@ -6378,7 +6482,6 @@
    return(0);
  }
  
@@ -281,7 +360,7 @@
  int NDPI_BITMASK_IS_EMPTY(NDPI_PROTOCOL_BITMASK a) {
    int i;
  
-@@ -6389,6 +6459,7 @@
+@@ -6389,6 +6492,7 @@
    return(1);
  }
  
@@ -289,7 +368,7 @@
  void NDPI_DUMP_BITMASK(NDPI_PROTOCOL_BITMASK a) {
    int i;
  
-@@ -6404,7 +6475,7 @@
+@@ -6404,7 +6508,7 @@
  }
  
  const char *ndpi_get_gcrypt_version(void) {
@@ -298,7 +377,7 @@
    return gcry_check_version(NULL);
  #endif
    return NULL;
-@@ -6831,7 +6902,8 @@
+@@ -6831,7 +6935,8 @@
      tmp[j] = '\0';
      len = j;
  
