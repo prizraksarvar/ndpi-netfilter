@@ -1,5 +1,5 @@
---- /home/chrisn/src/6/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2021-07-22 13:19:50.924012830 +0000
-+++ /home/chrisn/src/6/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2021-07-22 13:43:02.264071278 +0000
+--- /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2024-06-13 18:31:28
++++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2024-06-13 22:41:28
 @@ -21,9 +21,11 @@
   *
   */
@@ -125,7 +125,7 @@
    return(num_loaded);
  }
  
-@@ -1804,7 +1844,12 @@
+@@ -1804,8 +1844,13 @@
      }
    }
  
@@ -134,10 +134,11 @@
 +#else
 +  in4_pton(value, -1, (__u8*)&pin, '\0', NULL);
 +#endif
-+
  
++
    if((node = add_to_ptree(ndpi_str->protocols_ptree, AF_INET, &pin, bits)) != NULL) {
      node->value.uv.user_value = protocol_id, node->value.uv.additional_user_value = htons(port);
+   }
 @@ -2000,7 +2045,7 @@
    NDPI_BITMASK_RESET(ndpi_str->debug_bitmask);
  #endif /* NDPI_ENABLE_DEBUG_MESSAGES */
@@ -200,6 +201,15 @@
  }
  
  /* ******************************************************************** */
+@@ -4063,7 +4118,7 @@
+ 				      struct ndpi_flow_struct *flow) {
+   u_int16_t ret = NDPI_PROTOCOL_UNKNOWN;
+ 
+-  if(flow->packet.iph) {
++  if(flow && flow->packet.iph) {
+     struct in_addr addr;
+     u_int16_t sport, dport;
+ 
 @@ -4277,7 +4332,12 @@
        bits = atoi(ptr);
    }
