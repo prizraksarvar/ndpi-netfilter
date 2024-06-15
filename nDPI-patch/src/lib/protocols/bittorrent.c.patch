@@ -1,6 +1,18 @@
---- /home/chris/src/CyberReef/nDPI/src/lib/protocols/bittorrent.c	2021-06-14 12:55:42.802929762 -0400
-+++ ./bittorrent.c	2021-06-21 09:03:46.747032202 -0400
-@@ -451,8 +451,11 @@
+--- /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI//src/lib/protocols/bittorrent.c	2024-06-15 22:53:37
++++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/lib/protocols/bittorrent.c	2024-06-15 22:54:24
+@@ -72,8 +72,9 @@
+ 
+       if(bt_magic)
+ 	bt_hash = &bt_magic[19];
+-    } else
+-      bt_hash = (const char*)&flow->packet.payload[28];
++    } else if(flow->packet.payload_packet_len > 28) {
++        bt_hash = (const char*)&flow->packet.payload[28];
++    }
+ 
+     if(bt_hash && (flow->packet.payload_packet_len >= (20 + (bt_hash-(const char*)flow->packet.payload))))
+       memcpy(flow->protos.bittorrent.hash, bt_hash, 20);
+@@ -451,8 +452,11 @@
  	  } else if((v0_flags < 6 /* ST_NUM_STATES */) && (v0_extension < 3 /* EXT_NUM_EXT */)) {
  	    u_int32_t ts = ntohl(*((u_int32_t*)&(packet->payload[4])));
  	    u_int32_t now;

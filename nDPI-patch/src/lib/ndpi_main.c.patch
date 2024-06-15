@@ -1,5 +1,5 @@
 --- /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2024-06-13 18:31:28
-+++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2024-06-13 22:41:28
++++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2024-06-15 20:07:49
 @@ -21,9 +21,11 @@
   *
   */
@@ -201,16 +201,36 @@
  }
  
  /* ******************************************************************** */
-@@ -4063,7 +4118,7 @@
+@@ -4063,18 +4118,21 @@
  				      struct ndpi_flow_struct *flow) {
    u_int16_t ret = NDPI_PROTOCOL_UNKNOWN;
  
 -  if(flow->packet.iph) {
-+  if(flow && flow->packet.iph) {
++  if(ndpi_str && flow && flow->packet.iph) {
      struct in_addr addr;
      u_int16_t sport, dport;
  
-@@ -4277,7 +4332,12 @@
+     addr.s_addr = flow->packet.iph->saddr;
+ 
+-    if((flow->l4_proto == IPPROTO_TCP) && flow->packet.tcp)
+-      sport = flow->packet.tcp->source, dport = flow->packet.tcp->dest;
+-    else if((flow->l4_proto == IPPROTO_UDP) && flow->packet.udp)
+-      sport = flow->packet.udp->source, dport = flow->packet.udp->dest;
+-    else
+-      sport = dport = 0;
++    if((flow->l4_proto == IPPROTO_TCP) && flow->packet.tcp) {
++        sport = flow->packet.tcp->source;
++        dport = flow->packet.tcp->dest;
++    } else if((flow->l4_proto == IPPROTO_UDP) && flow->packet.udp) {
++        sport = flow->packet.udp->source;
++        dport = flow->packet.udp->dest;
++    } else {
++        sport = dport = 0;
++    }
+ 
+     /* guess host protocol */
+     ret = ndpi_network_port_ptree_match(ndpi_str, &addr, sport);
+@@ -4277,7 +4335,12 @@
        bits = atoi(ptr);
    }
  
@@ -224,7 +244,7 @@
      NDPI_LOG_DBG2(ndpi_str, "Invalid ip/ip+netmask: %s\n", ip_address_and_mask);
      return(-1);
    }
-@@ -4314,7 +4374,7 @@
+@@ -4314,7 +4377,7 @@
    memset(&ac_pattern, 0, sizeof(ac_pattern));
  
    if(ndpi_str->custom_categories.hostnames_shadow.ac_automa == NULL) {
@@ -233,7 +253,7 @@
      return(-1);
    }
  
-@@ -4323,12 +4383,12 @@
+@@ -4323,12 +4386,12 @@
  
    rc = ac_automata_add(ndpi_str->custom_categories.hostnames_shadow.ac_automa, &ac_pattern);
    if(rc != ACERR_DUPLICATE_PATTERN && rc != ACERR_SUCCESS) {
@@ -248,7 +268,7 @@
  
    return(0);
  }
-@@ -5691,7 +5751,7 @@
+@@ -5691,7 +5754,7 @@
  
  #ifdef NDPI_DETECTION_SUPPORT_IPV6
    if(ndpi_is_ipv6(ip)) {
@@ -257,7 +277,7 @@
        buf[0] = '\0';
  
      return(buf);
-@@ -5710,12 +5770,23 @@
+@@ -5710,12 +5773,23 @@
    int rv = -1;
    memset(parsed_ip, 0, sizeof(*parsed_ip));
  
@@ -283,7 +303,7 @@
        rv = 6;
  #endif
    }
-@@ -6378,7 +6449,6 @@
+@@ -6378,7 +6452,6 @@
    return(0);
  }
  
@@ -291,7 +311,7 @@
  int NDPI_BITMASK_IS_EMPTY(NDPI_PROTOCOL_BITMASK a) {
    int i;
  
-@@ -6389,6 +6459,7 @@
+@@ -6389,6 +6462,7 @@
    return(1);
  }
  
@@ -299,7 +319,7 @@
  void NDPI_DUMP_BITMASK(NDPI_PROTOCOL_BITMASK a) {
    int i;
  
-@@ -6404,7 +6475,7 @@
+@@ -6404,7 +6478,7 @@
  }
  
  const char *ndpi_get_gcrypt_version(void) {
@@ -308,7 +328,7 @@
    return gcry_check_version(NULL);
  #endif
    return NULL;
-@@ -6831,7 +6902,8 @@
+@@ -6831,7 +6905,8 @@
      tmp[j] = '\0';
      len = j;
  
