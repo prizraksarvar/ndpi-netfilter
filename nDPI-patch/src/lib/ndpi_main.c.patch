@@ -1,5 +1,5 @@
 --- /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI//src/lib/ndpi_main.c	2024-06-13 18:31:28
-+++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2024-06-15 20:07:49
++++ /Users/asdasdsdsadsada/CLionProjects/ndpi-netfilter/nDPI-patch//src/lib/ndpi_main.c	2024-06-15 20:16:35
 @@ -21,9 +21,11 @@
   *
   */
@@ -268,7 +268,29 @@
  
    return(0);
  }
-@@ -5691,7 +5754,7 @@
+@@ -4692,7 +4755,11 @@
+     /* guess protocol */
+     flow->guessed_protocol_id =
+       (int16_t) ndpi_guess_protocol_id(ndpi_str, flow, protocol, sport, dport, &user_defined_proto);
+-    flow->guessed_host_protocol_id = ndpi_guess_host_protocol_id(ndpi_str, flow);
++    if (ndpi_str && flow) {
++        flow->guessed_host_protocol_id = ndpi_guess_host_protocol_id(ndpi_str, flow);
++    } else {
++        flow->guessed_host_protocol_id = NDPI_PROTOCOL_UNKNOWN;
++    }
+ 
+     if(ndpi_str->custom_categories.categories_loaded && flow->packet.iph) {
+       ndpi_fill_ip_protocol_category(ndpi_str, flow->packet.iph->saddr, flow->packet.iph->daddr, &ret);
+@@ -4722,7 +4789,7 @@
+       }
+     } else {
+       /* guess host protocol */
+-      if(flow->packet.iph) {
++      if(ndpi_str && flow && flow->packet.iph) {
+ 
+ 	flow->guessed_host_protocol_id = ndpi_guess_host_protocol_id(ndpi_str, flow);
+ 
+@@ -5691,7 +5758,7 @@
  
  #ifdef NDPI_DETECTION_SUPPORT_IPV6
    if(ndpi_is_ipv6(ip)) {
@@ -277,7 +299,7 @@
        buf[0] = '\0';
  
      return(buf);
-@@ -5710,12 +5773,23 @@
+@@ -5710,12 +5777,23 @@
    int rv = -1;
    memset(parsed_ip, 0, sizeof(*parsed_ip));
  
@@ -303,7 +325,7 @@
        rv = 6;
  #endif
    }
-@@ -6378,7 +6452,6 @@
+@@ -6378,7 +6456,6 @@
    return(0);
  }
  
@@ -311,7 +333,7 @@
  int NDPI_BITMASK_IS_EMPTY(NDPI_PROTOCOL_BITMASK a) {
    int i;
  
-@@ -6389,6 +6462,7 @@
+@@ -6389,6 +6466,7 @@
    return(1);
  }
  
@@ -319,7 +341,7 @@
  void NDPI_DUMP_BITMASK(NDPI_PROTOCOL_BITMASK a) {
    int i;
  
-@@ -6404,7 +6478,7 @@
+@@ -6404,7 +6482,7 @@
  }
  
  const char *ndpi_get_gcrypt_version(void) {
@@ -328,7 +350,7 @@
    return gcry_check_version(NULL);
  #endif
    return NULL;
-@@ -6831,7 +6905,8 @@
+@@ -6831,7 +6909,8 @@
      tmp[j] = '\0';
      len = j;
  
