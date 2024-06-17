@@ -1,3 +1,10 @@
+# crash
+
+```shell
+mod -s xt_ndpi /usr/src/ndpi-netfilter/src/xt_ndpi.ko
+```
+ 
+
 This package is a GPL implementation of an iptables and netfilter module for
 nDPI integration into the Linux kernel 5.4+.
 
