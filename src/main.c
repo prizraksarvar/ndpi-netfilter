@@ -553,6 +553,7 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 
         /* here the actual detection is performed */
 	spin_lock_bh (&ipq_lock);
+    spin_lock_bh (&flow_lock);
 	curflow->detected_protocol = ndpi_detection_process_packet(ndpi_struct,curflow->ndpi_flow,
                                           (uint8_t *) iph, ipsize, time,
                                           src->ndpi_id, dst->ndpi_id);
@@ -560,7 +561,6 @@ ndpi_process_packet(struct nf_conn * ct, const uint64_t time,
 	spin_unlock_bh (&ipq_lock);
 
 	/* set detected protocol */
-	spin_lock_bh (&flow_lock);
 	if (flow != NULL) {
 		proto = curflow->detected_protocol.app_protocol;
 		flow->detected_protocol = curflow->detected_protocol;

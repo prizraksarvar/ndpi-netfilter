@@ -1,7 +1,11 @@
 # crash
 
 ```shell
+crash /usr/lib/debug/vmlinux-$(uname -r) dump.202406221213
+
 mod -s xt_ndpi /usr/src/ndpi-netfilter/src/xt_ndpi.ko
+
+bt -l
 ```
  
 
