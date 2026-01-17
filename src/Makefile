@@ -3,9 +3,14 @@ NDPI_SRC := ndpi_cpy
 NDPI_PATCH := ${NDPI_SRC}/../../nDPI-patch/src
 NDPI_PRO := ${NDPI_SRC}/lib/protocols
 
-ccflags-y += -w -I${src}/${NDPI_SRC}/include -I${src}/${NDPI_SRC}/lib -DOPENDPI_NETFILTER_MODULE -DNDPI_IPTABLES_EXT
+# Добавляем необходимые инклуды и макросы для ядра 6.2+
+ccflags-y += -w -I${src}/${NDPI_SRC}/include \
+             -I${src}/${NDPI_SRC}/lib \
+             -DOPENDPI_NETFILTER_MODULE \
+             -DNDPI_IPTABLES_EXT \
+             -DNDPI_LIB_COMPILATION
+
 PATCHED_FILES = $(basename $(shell cd ${NDPI_PATCH} ; find -type f -name "*.patch" | cut -c3-))
-EXTRA_CFLAGS += -isystem $(shell $(CC) -print-file-name=include)
 
 MODULES_DIR := /lib/modules/$(shell uname -r)
 KERNEL_DIR ?= ${MODULES_DIR}/build
@@ -96,7 +101,6 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/ldap.o \
                 ${NDPI_PRO}/lisp.o \
                 ${NDPI_PRO}/lotus_notes.o \
-                ${NDPI_PRO}/fasttrack.o \
                 ${NDPI_PRO}/mail_imap.o \
                 ${NDPI_PRO}/mail_pop.o \
                 ${NDPI_PRO}/mail_smtp.o \
@@ -190,34 +194,38 @@ xt_ndpi-y := main.o \
                 ${NDPI_PRO}/zabbix.o \
                 ${NDPI_PRO}/zattoo.o \
                 ${NDPI_PRO}/zeromq.o
-                # ${NDPI_SRC}/lib/ndpi_analyze.o \
-                # ${NDPI_SRC}/lib/hll.o \
-                # ${NDPI_SRC}/lib/MurmurHash3.o \
 
-all:
-all: patch
-	cp ${NDPI_SRC}/lib/third_party/src/*.c ${NDPI_SRC}/lib -R;
-	cp ${NDPI_SRC}/lib/third_party/include/*.h ${NDPI_SRC}/lib -R;
-	cp ${NDPI_SRC}/lib/third_party/include/*.h ${NDPI_SRC}/include -R;
-	make -C ${KERNEL_DIR} M=$$PWD;
-	rm -r ${NDPI_SRC}
-modules:
-	make -C ${KERNEL_DIR} M=$$PWD $@;
+# Основная цель
+all: patch prepare_ndpi
+	$(MAKE) -C ${KERNEL_DIR} M=$$PWD modules
+
+# Копирование исходников и сторонних библиотек
+prepare_ndpi:
+	@echo "Preparing third-party headers..."
+	@cp -R ${NDPI_SRC}/lib/third_party/src/*.c ${NDPI_SRC}/lib 2>/dev/null || true
+	@cp -R ${NDPI_SRC}/lib/third_party/include/*.h ${NDPI_SRC}/lib 2>/dev/null || true
+	@cp -R ${NDPI_SRC}/lib/third_party/include/*.h ${NDPI_SRC}/include 2>/dev/null || true
+
 modules_install:
-	make -C ${KERNEL_DIR} M=$$PWD $@;
-	depmod -a;
+	$(MAKE) -C ${KERNEL_DIR} M=$$PWD modules_install
+	depmod -a
+
 clean:
-	make -C ${KERNEL_DIR} M=$$PWD $@;
-	rm -rf modules.order ${NDPI_SRC}
+	$(MAKE) -C ${KERNEL_DIR} M=$$PWD clean
+	rm -rf modules.order Module.symvers ${NDPI_SRC}
+
 patch: $(NDPI_SRC)
-        # Make a local copy of the upstream nDPI src
-	@echo "Copying..."
-	cp ${NDPI_PATH2}/* ${NDPI_SRC} -R;
-	@echo "Patching..."
-	for patch in ${PATCHED_FILES} ; do \
-	    patch ${NDPI_SRC}/$${patch} < ${NDPI_PATCH}/$${patch}.patch ; \
-	done;
+	@echo "Copying nDPI source from ${NDPI_PATH2}..."
+	@cp -R ${NDPI_PATH2}/* ${NDPI_SRC}/
+	@echo "Applying patches..."
+	@for patch in ${PATCHED_FILES} ; do \
+		if [ -f ${NDPI_PATCH}/$${patch}.patch ]; then \
+			patch -p1 -d ${NDPI_SRC} < ${NDPI_PATCH}/$${patch}.patch ; \
+		fi; \
+	done
 
 $(NDPI_SRC):
-	@echo "Creating $(NDPI_SRC)"
-	mkdir ${NDPI_SRC};
+	@echo "Creating directory ${NDPI_SRC}"
+	@mkdir -p ${NDPI_SRC}
+
+.PHONY: all clean modules_install patch prepare_ndpi
