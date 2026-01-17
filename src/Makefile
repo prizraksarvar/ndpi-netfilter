@@ -215,14 +215,13 @@ clean:
 	rm -rf modules.order Module.symvers ${NDPI_SRC}
 
 patch: $(NDPI_SRC)
-	@echo "Copying nDPI source from ${NDPI_PATH2}..."
-	@cp -R ${NDPI_PATH2}/* ${NDPI_SRC}/
-	@echo "Applying patches..."
-	@for patch in ${PATCHED_FILES} ; do \
-		if [ -f ${NDPI_PATCH}/$${patch}.patch ]; then \
-			patch -p1 -d ${NDPI_SRC} < ${NDPI_PATCH}/$${patch}.patch ; \
-		fi; \
-	done
+        # Make a local copy of the upstream nDPI src
+	@echo "Copying..."
+	cp ${NDPI_PATH2}/* ${NDPI_SRC} -R;
+	@echo "Patching..."
+	for patch in ${PATCHED_FILES} ; do \
+	    patch ${NDPI_SRC}/$${patch} < ${NDPI_PATCH}/$${patch}.patch ; \
+	done;
 
 $(NDPI_SRC):
 	@echo "Creating directory ${NDPI_SRC}"
