@@ -28,8 +28,8 @@ static void ndpi_mt_parse(struct xt_option_call *cb)
     struct xt_ndpi_mtinfo *info = cb->data;
 
     // cb->entry->val содержит ID протокола, который мы записали в opts.val
-    if (cb->entry->val >= 1 && cb->entry->val < NDPI_LAST_NFPROTO) {
-        NDPI_ADD_PROTOCOL_TO_BITMASK(info->flags, cb->entry->val);
+    if (cb->entry->id >= 1 && cb->entry->id < NDPI_LAST_NFPROTO) {
+        NDPI_ADD_PROTOCOL_TO_BITMASK(info->flags, cb->entry->id);
     }
 }
 
