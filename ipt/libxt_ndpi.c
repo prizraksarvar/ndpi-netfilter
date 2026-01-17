@@ -10,7 +10,7 @@ static char *prot_long_str[] = { NDPI_PROTOCOL_LONG_STRING };
 static char *prot_short_str[] = { NDPI_PROTOCOL_SHORT_STRING };
 
 // Используем макрос для корректного количества опций
-static struct option ndpi_mt_opts[NDPI_LAST_NFPROTO + 1];
+static struct option ndpi_mt_opts[NDPI_LAST_NFPROTO + 2];
 
 static void ndpi_mt_help(void)
 {
@@ -89,22 +89,28 @@ static struct xtables_match ndpi_mt_reg = {
     .x6_fcheck     = ndpi_mt_check,
     .print         = ndpi_mt_print,
     .save          = ndpi_mt_save,
-    .extra_opts    = ndpi_mt_opts,
+    .x6_options    = ndpi_mt_opts, // Используем именно x6_options вместо extra_opts
 };
 
 void __attribute__((constructor)) _INIT (void)
 {
     int i;
 
+    // 1. Полностью очищаем память под опции
+    memset(ndpi_mt_opts, 0, sizeof(ndpi_mt_opts));
+
     for (i = 0; i < NDPI_LAST_NFPROTO; i++) {
+        if (prot_short_str[i+1] == NULL) break; // Защита от пустых строк
+
         ndpi_mt_opts[i].name    = prot_short_str[i+1];
-        ndpi_mt_opts[i].has_arg = false;
+        ndpi_mt_opts[i].has_arg = no_argument;
+        ndpi_mt_opts[i].flag    = NULL;
         ndpi_mt_opts[i].val     = i + 1;
     }
     // Завершающий элемент массива
-    ndpi_mt_opts[i].name    = NULL;
-    ndpi_mt_opts[i].has_arg = 0;
-    ndpi_mt_opts[i].val     = 0;
+    // ndpi_mt_opts[i].name    = NULL;
+    // ndpi_mt_opts[i].has_arg = 0;
+    // ndpi_mt_opts[i].val     = 0;
 
     xtables_register_match(&ndpi_mt_reg);
 }
