@@ -217,7 +217,6 @@ patch: $(NDPI_SRC)
 	for patch in ${PATCHED_FILES} ; do \
 	    patch ${NDPI_SRC}/$${patch} < ${NDPI_PATCH}/$${patch}.patch ; \
 	done;
-	cp ${NDPI_SRC}/lib/ndpi_main.c /root/ndpi-build/
 
 $(NDPI_SRC):
 	@echo "Creating $(NDPI_SRC)"
