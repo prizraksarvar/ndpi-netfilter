@@ -294,20 +294,10 @@ static bool ndpi_mt(const struct sk_buff *skb, struct xt_action_param *par) {
     return (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, proto) != 0);
 }
 
-/* Вручную определяем проверку маски, так как в библиотеке она может быть скрыта */
-static int ndpi_is_bitmask_empty(const NDPI_PROTOCOL_BITMASK *a) {
-    int i;
-    /* Используем NDPI_NUM_BITS / NDPI_BITS для кросс-версий nDPI */
-    for (i = 0; i < NDPI_NUM_FDS_BITS; i++) {
-        if (a->fds_bits[i] != 0) return 0;
-    }
-    return 1;
-}
-
 /* Initialization and Cleanup */
 static int ndpi_mt_check(const struct xt_mtchk_param *par) {
     const struct xt_ndpi_mtinfo *info = par->matchinfo;
-    if (ndpi_is_bitmask_empty(&info->flags)) return -EINVAL;
+    if (NDPI_BITMASK_IS_ZERO(info->flags)) return -EINVAL;
     
     // Simple protocol enable logic
     int i;

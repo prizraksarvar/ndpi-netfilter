@@ -33,11 +33,21 @@ static void ndpi_mt_parse(struct xt_option_call *cb)
     }
 }
 
+/* Вручную определяем проверку маски, так как в библиотеке она может быть скрыта */
+static int ndpi_is_bitmask_empty(const NDPI_PROTOCOL_BITMASK *a) {
+    int i;
+    /* Используем NDPI_NUM_BITS / NDPI_BITS для кросс-версий nDPI */
+    for (i = 0; i < NDPI_NUM_FDS_BITS; i++) {
+        if (a->fds_bits[i] != 0) return 0;
+    }
+    return 1;
+}
+
 static void ndpi_mt_check(struct xt_fcheck_call *cb)
 {
     struct xt_ndpi_mtinfo *info = cb->data;
     
-    if (NDPI_BITMASK_IS_ZERO(info->flags)) {
+    if (ndpi_is_bitmask_empty(&info->flags)) {
         xtables_error(PARAMETER_PROBLEM, "xt_ndpi: You must specify at least one protocol");
     }
 }
