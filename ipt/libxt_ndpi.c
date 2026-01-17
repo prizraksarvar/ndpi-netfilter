@@ -1,79 +1,67 @@
 #include <stdio.h>
 #include <string.h>
-#include <getopt.h>
-#include <arpa/inet.h>
 #include <xtables.h>
-#include <linux/version.h>
 #include "xt_ndpi.h"
 
 static char *prot_long_str[] = { NDPI_PROTOCOL_LONG_STRING };
 static char *prot_short_str[] = { NDPI_PROTOCOL_SHORT_STRING };
 
-// Используем макрос для корректного количества опций
-static struct option ndpi_mt_opts[NDPI_LAST_NFPROTO + 2];
+/* Используем современную структуру для nf_tables */
+static struct xt_option_entry ndpi_mt_opts_x6[NDPI_LAST_NFPROTO + 1];
 
-static void ndpi_mt_help(void)
-{
+static void ndpi_mt_help(void) {
     int i;
     printf("ndpi match options:\n");
     for (i = 1; i < NDPI_LAST_NFPROTO; i++) {
-        printf("--%-15s Match for %s protocol\n", 
-               prot_short_str[i], prot_long_str[i]);
+        if (prot_short_str[i] != NULL)
+            printf("--%-20s Match for %s\n", prot_short_str[i], prot_long_str[i]);
     }
 }
 
-// Современный метод парсинга (x6_parse)
-static void ndpi_mt_parse(struct xt_option_call *cb)
-{
-    struct xt_ndpi_mtinfo *info = cb->data;
-
-    // cb->entry->val содержит ID протокола, который мы записали в opts.val
-    if (cb->entry->id >= 1 && cb->entry->id < NDPI_LAST_NFPROTO) {
-        NDPI_ADD_PROTOCOL_TO_BITMASK(info->flags, cb->entry->id);
-    }
-}
-
-/* Вручную определяем проверку маски, так как в библиотеке она может быть скрыта */
-static int ndpi_is_bitmask_empty(const NDPI_PROTOCOL_BITMASK *a) {
+/* Функция проверки пустоты маски (безопасная реализация) */
+static int is_mask_empty(const NDPI_PROTOCOL_BITMASK *mask) {
     int i;
-    /* Используем NDPI_NUM_BITS / NDPI_BITS для кросс-версий nDPI */
     for (i = 0; i < NDPI_NUM_FDS_BITS; i++) {
-        if (a->fds_bits[i] != 0) return 0;
+        if (mask->fds_bits[i] != 0) return 0;
     }
     return 1;
 }
 
-static void ndpi_mt_check(struct xt_fcheck_call *cb)
-{
+/* Современный парсер X6 */
+static void ndpi_mt_x6_parse(struct xt_option_call *cb) {
     struct xt_ndpi_mtinfo *info = cb->data;
-    
-    if (ndpi_is_bitmask_empty(&info->flags)) {
+    // Используем .id, который мы назначили в конструкторе
+    unsigned int proto_id = cb->entry->id;
+
+    if (proto_id > 0 && proto_id < NDPI_LAST_NFPROTO) {
+        NDPI_ADD_PROTOCOL_TO_BITMASK(info->flags, proto_id);
+    }
+}
+
+/* Проверка параметров перед отправкой в ядро */
+static void ndpi_mt_x6_check(struct xt_fcheck_call *cb) {
+    struct xt_ndpi_mtinfo *info = cb->data;
+    if (is_mask_empty(&info->flags)) {
         xtables_error(PARAMETER_PROBLEM, "xt_ndpi: You must specify at least one protocol");
     }
 }
 
-static void ndpi_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
-{
+static void ndpi_mt_print(const void *ip, const struct xt_entry_match *match, int numeric) {
     const struct xt_ndpi_mtinfo *info = (const void *)match->data;
     int i;
-
     printf(" ndpi ");
     for (i = 1; i < NDPI_LAST_NFPROTO; i++) {
-        if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i) != 0) {
-            printf("%s ", prot_long_str[i]);
-        }
+        if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i)) 
+            printf("%s ", prot_short_str[i]);
     }
 }
 
-static void ndpi_mt_save(const void *ip, const struct xt_entry_match *match)
-{
+static void ndpi_mt_save(const void *ip, const struct xt_entry_match *match) {
     const struct xt_ndpi_mtinfo *info = (const void *)match->data;
     int i;
-
     for (i = 1; i < NDPI_LAST_NFPROTO; i++) {
-        if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i) != 0) {
+        if (NDPI_COMPARE_PROTOCOL_TO_BITMASK(info->flags, i)) 
             printf(" --%s", prot_short_str[i]);
-        }
     }
 }
 
@@ -85,32 +73,26 @@ static struct xtables_match ndpi_mt_reg = {
     .size          = XT_ALIGN(sizeof(struct xt_ndpi_mtinfo)),
     .userspacesize = XT_ALIGN(sizeof(struct xt_ndpi_mtinfo)),
     .help          = ndpi_mt_help,
-    .x6_parse      = ndpi_mt_parse,
-    .x6_fcheck     = ndpi_mt_check,
+    .x6_parse      = ndpi_mt_x6_parse,
+    .x6_fcheck     = ndpi_mt_x6_check,
     .print         = ndpi_mt_print,
     .save          = ndpi_mt_save,
-    .extra_opts    = ndpi_mt_opts,   // Используем стандартное поле
+    .x6_options    = ndpi_mt_opts_x6,
 };
 
-void __attribute__((constructor)) _INIT (void)
-{
+void __attribute__((constructor)) libxt_ndpi_setup(void) {
     int i;
+    int opt_idx = 0;
+    memset(ndpi_mt_opts_x6, 0, sizeof(ndpi_mt_opts_x6));
 
-    // 1. Полностью очищаем память под опции
-    memset(ndpi_mt_opts, 0, sizeof(ndpi_mt_opts));
-
-    for (i = 0; i < NDPI_LAST_NFPROTO; i++) {
-        if (prot_short_str[i+1] == NULL) break; // Защита от пустых строк
-
-        ndpi_mt_opts[i].name    = prot_short_str[i+1];
-        ndpi_mt_opts[i].has_arg = no_argument;
-        ndpi_mt_opts[i].flag    = NULL;
-        ndpi_mt_opts[i].val     = i + 1;
+    for (i = 1; i < NDPI_LAST_NFPROTO; i++) {
+        if (prot_short_str[i] != NULL && strlen(prot_short_str[i]) > 0) {
+            ndpi_mt_opts_x6[opt_idx].name = prot_short_str[i];
+            ndpi_mt_opts_x6[opt_idx].type = XTTYPE_NONE;
+            ndpi_mt_opts_x6[opt_idx].id   = i; // Это критически важно!
+            opt_idx++;
+        }
     }
-    // Завершающий элемент массива
-    // ndpi_mt_opts[i].name    = NULL;
-    // ndpi_mt_opts[i].has_arg = 0;
-    // ndpi_mt_opts[i].val     = 0;
-
+    // Терминатор (пустой элемент) уже на месте благодаря memset
     xtables_register_match(&ndpi_mt_reg);
 }
