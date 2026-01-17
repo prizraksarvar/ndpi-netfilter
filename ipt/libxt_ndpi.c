@@ -89,7 +89,7 @@ static struct xtables_match ndpi_mt_reg = {
     .x6_fcheck     = ndpi_mt_check,
     .print         = ndpi_mt_print,
     .save          = ndpi_mt_save,
-    .x6_options    = ndpi_mt_opts, // Используем именно x6_options вместо extra_opts
+    .extra_opts    = ndpi_mt_opts,   // Используем стандартное поле
 };
 
 void __attribute__((constructor)) _INIT (void)
