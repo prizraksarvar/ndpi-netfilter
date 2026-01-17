@@ -82,7 +82,7 @@ static struct xtables_match ndpi_mt_reg = {
     .extra_opts    = ndpi_mt_opts,
 };
 
-void _init(void) // В новых xtables конструктор через аттрибут не обязателен, достаточно _init
+void __attribute__((constructor)) _INIT (void)
 {
     int i;
 
